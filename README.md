@@ -1,0 +1,7 @@
+## SurgiShopERPNext
+
+SurgiShopERPNext
+
+#### License
+
+mit
