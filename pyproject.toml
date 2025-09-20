@@ -4,7 +4,7 @@ authors = [
     { name = "SurgiShop", email = "Arthur.Borges@SurgiShop.com"}
 ]
 description = "SurgiShopERPNext"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
