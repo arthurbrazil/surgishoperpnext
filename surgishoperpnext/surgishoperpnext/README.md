@@ -48,9 +48,11 @@ bench run-tests --app surgishoperpnext
 
 ## Technical Details
 
-The override is implemented in `surgishoperpnext/overrides/stock_controller.py` and registered in `hooks.py` using the `override_doctype_class` hook.
+The override is implemented in `surgishoperpnext/overrides/stock_controller.py` and registered in `hooks.py` using the `doc_events` hook for better update-proofing.
 
-The key method `_is_inbound_transaction()` determines whether a transaction is bringing stock into the system, and if so, skips the batch expiry validation that would normally prevent receiving expired products.
+The key function `is_inbound_transaction()` determines whether a transaction is bringing stock into the system, and if so, skips the batch expiry validation that would normally prevent receiving expired products.
+
+This approach uses document event hooks instead of class inheritance, making it more resilient to ERPNext updates.
 
 ## License
 

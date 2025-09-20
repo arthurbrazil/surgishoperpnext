@@ -129,21 +129,34 @@ app_license = "mit"
 # ---------------
 # Override standard doctype classes
 
-override_doctype_class = {
-	"Stock Controller": "surgishoperpnext.overrides.stock_controller.StockController"
-}
+# override_doctype_class = {
+# 	"ToDo": "custom_app.overrides.CustomToDo"
+# }
 
 # Document Events
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Purchase Receipt": {
+		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+	},
+	"Purchase Invoice": {
+		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+	},
+	"Stock Entry": {
+		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+	},
+	"Stock Reconciliation": {
+		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+	},
+	"Sales Invoice": {
+		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+	},
+	"Delivery Note": {
+		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+	}
+}
 
 # Scheduled Tasks
 # ---------------
