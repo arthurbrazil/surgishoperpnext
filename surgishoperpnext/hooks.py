@@ -73,9 +73,9 @@ app_license = "mit"
 # Website Routes
 # --------------
 
-website_route_rules = [
-	{"from_route": "/test-surgishop", "to_route": "test_app"}
-]
+# website_route_rules = [
+# 	{"from_route": "/test-surgishop", "to_route": "test_app"}
+# ]
 
 # Jinja
 # ----------
