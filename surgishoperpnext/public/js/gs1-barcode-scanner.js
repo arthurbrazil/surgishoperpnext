@@ -350,12 +350,8 @@ $(document).ready(function() {
     window.surgiShopGS1Scanner = new SurgiShopGS1BarcodeScanner();
 });
 
-// Also initialize when frappe is ready (with safety check)
-if (typeof frappe !== 'undefined' && frappe.ready) {
-    frappe.ready(function() {
-        console.log("🏥 SurgiShopERPNext: Frappe ready, GS1 Barcode Scanner initialized");
-    });
-}
+// Note: Scanner is already initialized via document.ready above
+// No need for frappe.ready since the scanner works independently
 
 console.log("🏥 SurgiShopERPNext: GS1 Barcode Scanner script loaded");
 
