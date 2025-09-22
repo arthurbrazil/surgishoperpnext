@@ -74,35 +74,53 @@ function add_surgishop_indicator() {
     return;
   }
 
-  // Create the indicator element
+  // Create the indicator element - more discreet design
   const indicator = $(`
 		<div class="surgishop-indicator" style="
 			position: fixed;
-			top: 20px;
+			bottom: 20px;
 			right: 20px;
-			background: linear-gradient(135deg, #10b981, #059669);
-			color: white;
-			padding: 12px 20px;
-			border-radius: 25px;
-			font-size: 13px;
-			font-weight: 600;
-			box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+			background: rgba(16, 185, 129, 0.1);
+			border: 1px solid rgba(16, 185, 129, 0.3);
+			color: #059669;
+			padding: 6px 10px;
+			border-radius: 12px;
+			font-size: 11px;
+			font-weight: 500;
 			z-index: 1000;
 			cursor: pointer;
 			transition: all 0.3s ease;
 			display: flex;
 			align-items: center;
-			gap: 8px;
+			gap: 6px;
 			opacity: 0;
-			transform: translateY(-10px);
+			transform: translateY(10px);
+			backdrop-filter: blur(8px);
+			-webkit-backdrop-filter: blur(8px);
 		">
-			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M9 12l2 2 4-4"/>
-				<circle cx="12" cy="12" r="9"/>
-			</svg>
-			<span>SurgiShop Override Active</span>
+			<div style="
+				width: 6px;
+				height: 6px;
+				background: #10b981;
+				border-radius: 50%;
+				animation: pulse 2s infinite;
+			"></div>
+			<span style="font-size: 10px;">SurgiShop</span>
 		</div>
 	`);
+
+  // Add CSS animation for pulse effect
+  if (!$('#surgishop-pulse-animation').length) {
+    $('head').append(`
+      <style id="surgishop-pulse-animation">
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+      </style>
+    `);
+  }
 
   // Add to page
   $("body").append(indicator);
@@ -116,18 +134,20 @@ function add_surgishop_indicator() {
     });
   }, 100);
 
-  // Add hover effects
+  // Add subtle hover effects
   indicator.hover(
     function () {
       $(this).css({
-        transform: "translateY(-2px)",
-        boxShadow: "0 6px 20px rgba(16, 185, 129, 0.4)",
+        background: "rgba(16, 185, 129, 0.15)",
+        border: "1px solid rgba(16, 185, 129, 0.5)",
+        transform: "translateY(0) scale(1.05)",
       });
     },
     function () {
       $(this).css({
-        transform: "translateY(0)",
-        boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+        background: "rgba(16, 185, 129, 0.1)",
+        border: "1px solid rgba(16, 185, 129, 0.3)",
+        transform: "translateY(0) scale(1)",
       });
     }
   );
@@ -169,34 +189,34 @@ function add_surgishop_indicator() {
     }
   });
 
-  // Auto-hide after 5 seconds, then show periodically
+  // Auto-fade after 10 seconds to be more discreet
   setTimeout(() => {
     indicator.css({
-      opacity: "0.7",
-      transform: "scale(0.9)",
+      opacity: "0.4",
+      transform: "translateY(0) scale(0.95)",
     });
-  }, 5000);
+  }, 10000);
 
-  // Pulse effect every 30 seconds to remind user
+  // Very subtle pulse every 60 seconds
   setInterval(() => {
     if (indicator.length && indicator.is(":visible")) {
       indicator
         .animate(
           {
-            opacity: 1,
-            transform: "scale(1)",
+            opacity: 0.6,
+            transform: "translateY(0) scale(1)",
           },
-          300
+          500
         )
         .animate(
           {
-            opacity: 0.7,
-            transform: "scale(0.9)",
+            opacity: 0.4,
+            transform: "translateY(0) scale(0.95)",
           },
-          300
+          500
         );
     }
-  }, 30000);
+  }, 60000);
 }
 
 // Also add a console log for developers
