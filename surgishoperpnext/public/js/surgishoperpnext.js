@@ -1,55 +1,66 @@
-// Wait for frappe to be available before executing
-function waitForFrappe() {
-  console.log("SurgiShopERPNext: Waiting for frappe...");
+// Simple approach without frappe.ready dependency
+$(document).ready(function() {
+  console.log("SurgiShopERPNext: Document ready, initializing...");
   
-  if (typeof frappe !== 'undefined' && frappe.ready) {
-    console.log("SurgiShopERPNext: Frappe available, setting up");
-    
-    frappe.ready(function () {
-      console.log("SurgiShopERPNext: Frappe ready");
-      
-      // Try to add indicator when frappe is ready
+  // Initialize immediately and set up monitoring
+  initializeSurgiShopIndicator();
+});
+
+function initializeSurgiShopIndicator() {
+  console.log("SurgiShopERPNext: Starting initialization");
+  
+  // Add indicator with multiple timing strategies
+  setTimeout(function() {
+    console.log("SurgiShopERPNext: First attempt (500ms)");
+    add_surgishop_indicator();
+  }, 500);
+  
+  setTimeout(function() {
+    console.log("SurgiShopERPNext: Second attempt (1500ms)");
+    add_surgishop_indicator();
+  }, 1500);
+  
+  setTimeout(function() {
+    console.log("SurgiShopERPNext: Third attempt (3000ms)");
+    add_surgishop_indicator();
+  }, 3000);
+  
+  // Set up event listeners for navigation if available
+  if (typeof $ !== 'undefined') {
+    // Listen for hash changes (common in SPAs)
+    $(window).on('hashchange', function() {
+      console.log("SurgiShopERPNext: Hash changed to", window.location.hash);
       setTimeout(add_surgishop_indicator, 500);
-      
-      // Also trigger on page load for desk
-      $(document).on("page-change", function () {
-        console.log("SurgiShopERPNext: Page changed to", cur_page ? cur_page.page_name : "unknown");
-        if (cur_page && cur_page.page_name === "desktop") {
-          add_surgishop_indicator();
-        }
-      });
-      
-      // Additional trigger for route changes
-      if (frappe.router && frappe.router.on) {
-        frappe.router.on('change', function() {
-          console.log("SurgiShopERPNext: Route changed to", frappe.get_route_str());
-          if (frappe.get_route_str() === "" || frappe.get_route_str() === "desk") {
-            setTimeout(add_surgishop_indicator, 500);
-          }
-        });
-      }
     });
-  } else {
-    console.log("SurgiShopERPNext: Frappe not ready, retrying...");
-    setTimeout(waitForFrappe, 100);
+    
+    // Listen for any navigation events
+    $(document).on('click', 'a', function() {
+      setTimeout(function() {
+        console.log("SurgiShopERPNext: Navigation detected, adding indicator");
+        add_surgishop_indicator();
+      }, 1000);
+    });
+  }
+  
+  // Try to hook into frappe events if available (without using frappe.ready)
+  if (typeof frappe !== 'undefined') {
+    console.log("SurgiShopERPNext: Frappe detected, setting up event hooks");
+    
+    // Try to listen for route changes if router exists
+    var checkForRouter = function() {
+      if (frappe.router && frappe.router.on) {
+        console.log("SurgiShopERPNext: Router found, hooking into route changes");
+        frappe.router.on('change', function() {
+          console.log("SurgiShopERPNext: Route changed via frappe router");
+          setTimeout(add_surgishop_indicator, 500);
+        });
+      } else {
+        setTimeout(checkForRouter, 500);
+      }
+    };
+    checkForRouter();
   }
 }
-
-// Multiple ways to ensure the indicator loads
-$(document).ready(function() {
-  console.log("SurgiShopERPNext: Document ready");
-  
-  // Start waiting for frappe
-  waitForFrappe();
-  
-  // Also try with basic timing as fallback
-  if (window.location.pathname === "/app" || window.location.pathname.startsWith("/app/")) {
-    setTimeout(function() {
-      console.log("SurgiShopERPNext: Fallback timer trigger");
-      add_surgishop_indicator();
-    }, 2000);
-  }
-});
 
 function add_surgishop_indicator() {
   console.log("SurgiShopERPNext: Attempting to add indicator");
@@ -123,33 +134,39 @@ function add_surgishop_indicator() {
 
   // Add click handler to show info
   indicator.click(function () {
-    frappe.msgprint({
-      title: __("SurgiShopERPNext Status"),
-      message: `
-				<div style="text-align: center; padding: 20px;">
-					<div style="font-size: 48px; color: #10b981; margin-bottom: 16px;">✓</div>
-					<h3 style="color: #1f2937; margin-bottom: 12px;">Stock Override Active</h3>
-					<p style="color: #6b7280; margin-bottom: 20px;">
-						The SurgiShopERPNext app is successfully running and overriding 
-						stock validation to allow expired products in inbound transactions.
-					</p>
-					<div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: left;">
-						<strong style="color: #1f2937;">Protected Transactions:</strong><br>
-						<span style="color: #059669;">✓ Purchase Receipt</span><br>
-						<span style="color: #059669;">✓ Purchase Invoice</span><br>
-						<span style="color: #059669;">✓ Stock Entry (Material Receipt)</span><br>
-						<span style="color: #059669;">✓ Stock Reconciliation</span><br>
-						<span style="color: #059669;">✓ Sales Returns</span>
-					</div>
-				</div>
-			`,
-      primary_action: {
-        label: __("Got it"),
-        action: function () {
-          cur_dialog.hide();
-        },
-      },
-    });
+    console.log("SurgiShopERPNext: Indicator clicked, showing info");
+    
+    // Try frappe msgprint if available, otherwise use alert
+    if (typeof frappe !== 'undefined' && frappe.msgprint) {
+      try {
+        frappe.msgprint({
+          title: "SurgiShopERPNext Status",
+          message: `
+            <div style="text-align: center; padding: 20px;">
+              <div style="font-size: 48px; color: #10b981; margin-bottom: 16px;">✓</div>
+              <h3 style="color: #1f2937; margin-bottom: 12px;">Stock Override Active</h3>
+              <p style="color: #6b7280; margin-bottom: 20px;">
+                The SurgiShopERPNext app is successfully running and overriding 
+                stock validation to allow expired products in inbound transactions.
+              </p>
+              <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: left;">
+                <strong style="color: #1f2937;">Protected Transactions:</strong><br>
+                <span style="color: #059669;">✓ Purchase Receipt</span><br>
+                <span style="color: #059669;">✓ Purchase Invoice</span><br>
+                <span style="color: #059669;">✓ Stock Entry (Material Receipt)</span><br>
+                <span style="color: #059669;">✓ Stock Reconciliation</span><br>
+                <span style="color: #059669;">✓ Sales Returns</span>
+              </div>
+            </div>
+          `,
+        });
+      } catch (e) {
+        console.log("SurgiShopERPNext: Frappe msgprint failed, using alert");
+        alert("✓ SurgiShopERPNext Override Active\n\nStock validation override is working for inbound transactions:\n• Purchase Receipt\n• Purchase Invoice\n• Stock Entry (Material Receipt)\n• Stock Reconciliation\n• Sales Returns");
+      }
+    } else {
+      alert("✓ SurgiShopERPNext Override Active\n\nStock validation override is working for inbound transactions:\n• Purchase Receipt\n• Purchase Invoice\n• Stock Entry (Material Receipt)\n• Stock Reconciliation\n• Sales Returns");
+    }
   });
 
   // Auto-hide after 5 seconds, then show periodically
