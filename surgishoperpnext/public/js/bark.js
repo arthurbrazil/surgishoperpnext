@@ -12,7 +12,8 @@
         '01': {
             title: 'GTIN-01',
             length: 14,
-            parser: function(data) {
+            parser: function(options) {
+                const data = options.barcode || '';
                 const gtin = data.slice(0, 14);
                 return {
                     raw: gtin,
@@ -24,7 +25,8 @@
         '10': {
             title: 'Batch/Lot Number',
             length: 'variable',
-            parser: function(data) {
+            parser: function(options) {
+                const data = options.barcode || '';
                 let value = '';
                 let i = 0;
                 while (i < data.length && data[i] !== String.fromCharCode(29)) {
@@ -41,7 +43,8 @@
         '11': {
             title: 'Production Date',
             length: 6,
-            parser: function(data) {
+            parser: function(options) {
+                const data = options.barcode || '';
                 const date = data.slice(0, 6);
                 return {
                     raw: date,
@@ -53,7 +56,8 @@
         '17': {
             title: 'Expiration Date',
             length: 6,
-            parser: function(data) {
+            parser: function(options) {
+                const data = options.barcode || '';
                 const date = data.slice(0, 6);
                 return {
                     raw: date,
@@ -65,7 +69,8 @@
         '21': {
             title: 'Serial Number',
             length: 'variable',
-            parser: function(data) {
+            parser: function(options) {
+                const data = options.barcode || '';
                 let value = '';
                 let i = 0;
                 while (i < data.length && data[i] !== String.fromCharCode(29)) {
@@ -140,7 +145,8 @@
         return {
             ai: '00',
             title: 'Unknown',
-            parser: function(data) {
+            parser: function(options) {
+                const data = options.barcode || '';
                 return {
                     raw: data,
                     value: data,
