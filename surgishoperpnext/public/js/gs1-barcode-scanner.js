@@ -65,9 +65,18 @@ class SurgiShopGS1BarcodeScanner {
         
         // Override frappe's default barcode scanning
         if (typeof frappe !== 'undefined' && frappe.ui) {
-            this.originalScanBarcode = frappe.ui.scan_barcode;
-            frappe.ui.scan_barcode = this.handleBarcodeScan.bind(this);
-            console.log("🏥 SurgiShopERPNext: Global barcode override installed");
+            // Check if scan_barcode exists before overriding
+            if (typeof frappe.ui.scan_barcode === 'function') {
+                this.originalScanBarcode = frappe.ui.scan_barcode;
+                frappe.ui.scan_barcode = this.handleBarcodeScan.bind(this);
+                console.log("🏥 SurgiShopERPNext: Global barcode override installed");
+            } else {
+                console.log("🏥 SurgiShopERPNext: frappe.ui.scan_barcode not found, using event listeners only");
+                this.originalScanBarcode = null;
+            }
+        } else {
+            console.log("🏥 SurgiShopERPNext: Frappe UI not available, using event listeners only");
+            this.originalScanBarcode = null;
         }
     }
 
@@ -97,7 +106,12 @@ class SurgiShopGS1BarcodeScanner {
         if (this.isExcludedDialog()) {
             console.log("🏥 SurgiShopERPNext: In excluded dialog, using original scan function");
             this.debugLog("Serial/Batch Selector Dialog detected - using original barcode scan");
-            return this.originalScanBarcode(options);
+            if (this.originalScanBarcode) {
+                return this.originalScanBarcode(options);
+            } else {
+                console.log("🏥 SurgiShopERPNext: No original scan function available");
+                return;
+            }
         }
 
         // Use our custom GS1 barcode processing
@@ -121,7 +135,12 @@ class SurgiShopGS1BarcodeScanner {
         if (!this.barkLoaded) {
             console.warn("🏥 SurgiShopERPNext: bark.js not loaded yet, falling back to original");
             this.debugLog("WARNING: bark.js not loaded, using fallback");
-            return this.originalScanBarcode(options);
+            if (this.originalScanBarcode) {
+                return this.originalScanBarcode(options);
+            } else {
+                console.log("🏥 SurgiShopERPNext: No original scan function available");
+                return;
+            }
         }
 
         const barcode = options.barcode || options.value || '';
@@ -135,12 +154,20 @@ class SurgiShopGS1BarcodeScanner {
                 this.lookupItemByGTIN(gtin01, options);
             } else {
                 this.debugLog("No GTIN-01 found, falling back to original scan");
-                this.originalScanBarcode(options);
+                if (this.originalScanBarcode) {
+                    this.originalScanBarcode(options);
+                } else {
+                    console.log("🏥 SurgiShopERPNext: No original scan function available");
+                }
             }
         } catch (error) {
             console.error("🏥 SurgiShopERPNext: GS1 parsing error", error);
             this.debugLog(`ERROR in GS1 parsing: ${error.message}`);
-            this.originalScanBarcode(options);
+            if (this.originalScanBarcode) {
+                this.originalScanBarcode(options);
+            } else {
+                console.log("🏥 SurgiShopERPNext: No original scan function available");
+            }
         }
     }
 
