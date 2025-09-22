@@ -1,24 +1,47 @@
-frappe.ready(function () {
-  // Add SurgiShopERPNext visual indicator to home page
-  if (
-    frappe.boot &&
-    frappe.boot.home_page &&
-    window.location.pathname === "/app"
-  ) {
-    add_surgishop_indicator();
+// Multiple ways to ensure the indicator loads
+$(document).ready(function() {
+  console.log("SurgiShopERPNext: Document ready");
+  
+  // Try to add indicator immediately if we're on desk
+  if (window.location.pathname === "/app" || window.location.pathname.startsWith("/app/")) {
+    setTimeout(add_surgishop_indicator, 1000);
   }
+});
 
+frappe.ready(function () {
+  console.log("SurgiShopERPNext: Frappe ready");
+  
+  // Try to add indicator when frappe is ready
+  setTimeout(add_surgishop_indicator, 500);
+  
   // Also trigger on page load for desk
   $(document).on("page-change", function () {
+    console.log("SurgiShopERPNext: Page changed to", cur_page ? cur_page.page_name : "unknown");
     if (cur_page && cur_page.page_name === "desktop") {
       add_surgishop_indicator();
+    }
+  });
+  
+  // Additional trigger for route changes
+  frappe.router.on('change', function() {
+    console.log("SurgiShopERPNext: Route changed to", frappe.get_route_str());
+    if (frappe.get_route_str() === "" || frappe.get_route_str() === "desk") {
+      setTimeout(add_surgishop_indicator, 500);
     }
   });
 });
 
 function add_surgishop_indicator() {
+  console.log("SurgiShopERPNext: Attempting to add indicator");
+  
   // Remove existing indicator if present
   $(".surgishop-indicator").remove();
+  
+  // Check if we're in the right context
+  if (!$ || !jQuery) {
+    console.log("SurgiShopERPNext: jQuery not available");
+    return;
+  }
 
   // Create the indicator element
   const indicator = $(`
@@ -52,6 +75,7 @@ function add_surgishop_indicator() {
 
   // Add to page
   $("body").append(indicator);
+  console.log("SurgiShopERPNext: Indicator added to page successfully");
 
   // Animate in
   setTimeout(() => {
