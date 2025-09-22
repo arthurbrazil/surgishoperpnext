@@ -16,6 +16,8 @@ class SurgiShopGS1BarcodeScanner {
             'Batch Selector',
             'Serial No Selector'
         ];
+        this.originalScanBarcode = null;
+        this.originalFormScanBarcode = null;
         this.init();
     }
 
@@ -78,6 +80,66 @@ class SurgiShopGS1BarcodeScanner {
             console.log("🏥 SurgiShopERPNext: Frappe UI not available, using event listeners only");
             this.originalScanBarcode = null;
         }
+
+        // Also override the form-level barcode scanning
+        this.overrideFormBarcodeScanning();
+        
+        // Override the specific barcode scanning mechanism
+        this.overrideBarcodeScanningMechanism();
+    }
+
+    overrideFormBarcodeScanning() {
+        console.log("🏥 SurgiShopERPNext: Setting up form-level barcode override...");
+        
+        // Override the barcode scanning in forms
+        if (typeof frappe !== 'undefined' && frappe.ui && frappe.ui.form) {
+            // Store original scan_barcode if it exists
+            if (frappe.ui.form.scan_barcode && !this.originalFormScanBarcode) {
+                this.originalFormScanBarcode = frappe.ui.form.scan_barcode;
+            }
+            
+            // Override the form scan_barcode method
+            frappe.ui.form.scan_barcode = this.handleFormBarcodeScan.bind(this);
+            console.log("🏥 SurgiShopERPNext: Form-level barcode override installed");
+        }
+    }
+
+    overrideBarcodeScanningMechanism() {
+        console.log("🏥 SurgiShopERPNext: Setting up comprehensive barcode override...");
+        
+        // Override the barcode scanning mechanism used in forms
+        if (typeof frappe !== 'undefined' && frappe.ui && frappe.ui.form) {
+            // Override the scan_barcode method in the form prototype
+            const originalScanBarcode = frappe.ui.form.Form.prototype.scan_barcode;
+            if (originalScanBarcode && !this.originalFormScanBarcode) {
+                this.originalFormScanBarcode = originalScanBarcode;
+            }
+            
+            frappe.ui.form.Form.prototype.scan_barcode = function(barcode) {
+                console.log("🏥 SurgiShopERPNext: Form prototype scan_barcode called", barcode);
+                
+                // Check if we're in an excluded dialog
+                if (window.surgiShopGS1Scanner && window.surgiShopGS1Scanner.isExcludedDialog()) {
+                    console.log("🏥 SurgiShopERPNext: In excluded dialog, using original scan function");
+                    if (window.surgiShopGS1Scanner.originalFormScanBarcode) {
+                        return window.surgiShopGS1Scanner.originalFormScanBarcode.call(this, barcode);
+                    }
+                }
+                
+                // Use our custom GS1 barcode processing
+                if (window.surgiShopGS1Scanner) {
+                    window.surgiShopGS1Scanner.debugLog("Using custom GS1 barcode processing for form prototype");
+                    window.surgiShopGS1Scanner.processGS1Barcode({ barcode: barcode, frm: this });
+                } else {
+                    console.log("🏥 SurgiShopERPNext: Scanner not available, using original scan");
+                    if (window.surgiShopGS1Scanner && window.surgiShopGS1Scanner.originalFormScanBarcode) {
+                        return window.surgiShopGS1Scanner.originalFormScanBarcode.call(this, barcode);
+                    }
+                }
+            };
+            
+            console.log("🏥 SurgiShopERPNext: Form prototype barcode override installed");
+        }
     }
 
     setupEventListeners() {
@@ -117,6 +179,26 @@ class SurgiShopGS1BarcodeScanner {
         // Use our custom GS1 barcode processing
         this.debugLog("Using custom GS1 barcode processing");
         this.processGS1Barcode(options);
+    }
+
+    handleFormBarcodeScan(frm, barcode) {
+        console.log("🏥 SurgiShopERPNext: handleFormBarcodeScan called", { frm, barcode });
+        
+        // Check if we're in an excluded dialog
+        if (this.isExcludedDialog()) {
+            console.log("🏥 SurgiShopERPNext: In excluded dialog, using original form scan function");
+            this.debugLog("Serial/Batch Selector Dialog detected - using original form barcode scan");
+            if (this.originalFormScanBarcode) {
+                return this.originalFormScanBarcode(frm, barcode);
+            } else {
+                console.log("🏥 SurgiShopERPNext: No original form scan function available");
+                return;
+            }
+        }
+
+        // Use our custom GS1 barcode processing
+        this.debugLog("Using custom GS1 barcode processing for form");
+        this.processGS1Barcode({ barcode: barcode, frm: frm });
     }
 
     isExcludedDialog() {

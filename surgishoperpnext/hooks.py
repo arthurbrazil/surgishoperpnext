@@ -27,9 +27,9 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"
 app_include_js = [
-	"/assets/surgishoperpnext/js/bark.js?v=1.0.4",
+	"/assets/surgishoperpnext/js/bark.js?v=1.0.5",
 	"/assets/surgishoperpnext/js/surgishoperpnext-v2.js",
-	"/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.4"
+	"/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.5"
 ]
 
 # include js, css files in header of web template
