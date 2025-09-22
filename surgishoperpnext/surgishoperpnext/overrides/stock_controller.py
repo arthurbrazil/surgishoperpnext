@@ -6,6 +6,60 @@ from frappe import _
 from frappe.utils import getdate, get_link_to_form, flt
 from erpnext.controllers.stock_controller import BatchExpiredError
 
+# Store original validation function
+_original_validate_serialized_batch = None
+
+def disable_batch_expiry_validation(doc, method):
+	"""
+	Disable batch expiry validation for inbound transactions by temporarily
+	monkey-patching the StockController validation method.
+	"""
+	global _original_validate_serialized_batch
+	
+	frappe.logger().info(f"SurgiShopERPNext: Disabling batch validation for {doc.doctype}")
+	
+	# Import StockController
+	try:
+		from erpnext.controllers.stock_controller import StockController
+		
+		# Store original if not already stored
+		if _original_validate_serialized_batch is None:
+			_original_validate_serialized_batch = StockController.validate_serialized_batch
+		
+		# Check if this is an inbound document
+		is_inbound_doc = doc.doctype in ["Purchase Receipt", "Purchase Invoice"] and not doc.get("is_return")
+		
+		if is_inbound_doc:
+			frappe.logger().info(f"SurgiShopERPNext: Temporarily disabling batch expiry validation for {doc.doctype}")
+			# Replace with a no-op function for inbound transactions
+			StockController.validate_serialized_batch = lambda self: None
+		else:
+			# Ensure original function is restored for non-inbound transactions
+			if _original_validate_serialized_batch:
+				StockController.validate_serialized_batch = _original_validate_serialized_batch
+				
+	except Exception as e:
+		frappe.logger().error(f"SurgiShopERPNext: Error in disable_batch_expiry_validation: {str(e)}")
+
+def restore_batch_expiry_validation(doc, method):
+	"""
+	Restore the original batch expiry validation after document processing.
+	"""
+	global _original_validate_serialized_batch
+	
+	frappe.logger().info(f"SurgiShopERPNext: Restoring batch validation after {doc.doctype}")
+	
+	try:
+		from erpnext.controllers.stock_controller import StockController
+		
+		# Restore original function
+		if _original_validate_serialized_batch:
+			StockController.validate_serialized_batch = _original_validate_serialized_batch
+			frappe.logger().info(f"SurgiShopERPNext: Batch validation restored")
+			
+	except Exception as e:
+		frappe.logger().error(f"SurgiShopERPNext: Error in restore_batch_expiry_validation: {str(e)}")
+
 
 def is_inbound_transaction(doc, item_row):
 	"""
@@ -44,9 +98,22 @@ def is_inbound_transaction(doc, item_row):
 
 def validate_serialized_batch_with_expired_override(doc, method):
 	"""
-	Override the validate_serialized_batch method to allow expired products for inbound transactions.
-	This is called via doc_events hook for better update-proofing.
+	Override to allow expired products for inbound transactions.
+	This completely replaces the default batch expiry validation.
 	"""
+	# Add logging to verify function is being called
+	frappe.logger().info(f"SurgiShopERPNext: Override function called for {doc.doctype}")
+	
+	# Check if this is an inbound transaction at document level
+	is_inbound_doc = doc.doctype in ["Purchase Receipt", "Purchase Invoice"] and not doc.get("is_return")
+	
+	if is_inbound_doc:
+		frappe.logger().info(f"SurgiShopERPNext: Detected inbound document {doc.doctype}, skipping all batch expiry validation")
+		return  # Skip all validation for inbound documents
+	
+	# For non-inbound documents, perform the standard validation
+	frappe.logger().info(f"SurgiShopERPNext: Performing standard batch validation for {doc.doctype}")
+	
 	from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
 
 	is_material_issue = False
@@ -73,9 +140,12 @@ def validate_serialized_batch_with_expired_override(doc, method):
 		if is_material_issue:
 			continue
 
-		# Skip batch expiry validation for inbound transactions
-		# This allows expired products to be received into the system
-		if is_inbound_transaction(doc, d):
+		# For other transactions, check if they are inbound
+		is_inbound = is_inbound_transaction(doc, d)
+		frappe.logger().info(f"SurgiShopERPNext: Row {d.idx}, Doctype: {doc.doctype}, Is Inbound: {is_inbound}")
+		
+		if is_inbound:
+			frappe.logger().info(f"SurgiShopERPNext: Skipping batch expiry validation for inbound transaction")
 			continue
 
 		# Keep the original batch expiry validation for outbound transactions

@@ -139,10 +139,14 @@ app_include_js = "/assets/surgishoperpnext/js/surgishoperpnext-v2.js"
 
 doc_events = {
 	"Purchase Receipt": {
-		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"before_validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.disable_batch_expiry_validation",
+		"after_insert": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation",
+		"on_cancel": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation"
 	},
 	"Purchase Invoice": {
-		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"before_validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.disable_batch_expiry_validation",
+		"after_insert": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation",
+		"on_cancel": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation"
 	},
 	"Stock Entry": {
 		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
