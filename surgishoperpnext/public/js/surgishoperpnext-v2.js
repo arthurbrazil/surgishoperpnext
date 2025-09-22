@@ -74,51 +74,53 @@ function add_surgishop_indicator() {
     return;
   }
 
-  // Create the indicator element - more discreet design
+  // Create corner sash style indicator
   var indicatorHtml = '<div class="surgishop-indicator" style="' +
     'position: fixed;' +
-    'bottom: 20px;' +
-    'right: 20px;' +
-    'background: rgba(16, 185, 129, 0.1);' +
-    'border: 1px solid rgba(16, 185, 129, 0.3);' +
-    'color: #059669;' +
-    'padding: 6px 10px;' +
-    'border-radius: 12px;' +
-    'font-size: 11px;' +
-    'font-weight: 500;' +
+    'bottom: 0;' +
+    'right: 0;' +
+    'width: 0;' +
+    'height: 0;' +
+    'border-style: solid;' +
+    'border-width: 0 0 60px 60px;' +
+    'border-color: transparent transparent #6b7280 transparent;' +
     'z-index: 1000;' +
     'cursor: pointer;' +
     'transition: all 0.3s ease;' +
-    'display: flex;' +
-    'align-items: center;' +
-    'gap: 6px;' +
     'opacity: 0;' +
-    'transform: translateY(10px);' +
     '">' +
-    '<div class="surgishop-pulse-dot" style="' +
-    'width: 6px;' +
-    'height: 6px;' +
-    'background: #10b981;' +
-    'border-radius: 50%;' +
-    '"></div>' +
-    '<span style="font-size: 10px;">SurgiShop</span>' +
-    '</div>';
+    '</div>' +
+    '<div class="surgishop-sash-text" style="' +
+    'position: fixed;' +
+    'bottom: 8px;' +
+    'right: 8px;' +
+    'color: white;' +
+    'font-size: 9px;' +
+    'font-weight: 600;' +
+    'text-transform: uppercase;' +
+    'letter-spacing: 0.5px;' +
+    'transform: rotate(-45deg);' +
+    'transform-origin: center;' +
+    'z-index: 1001;' +
+    'cursor: pointer;' +
+    'user-select: none;' +
+    'pointer-events: none;' +
+    'opacity: 0;' +
+    '">SS</div>';
   
   var indicator = $(indicatorHtml);
 
-  // Add CSS animation for pulse effect
-  if (!$('#surgishop-pulse-animation').length) {
-    var pulseStyle = '<style id="surgishop-pulse-animation">' +
-      '@keyframes surgishop-pulse {' +
-      '0% { opacity: 1; }' +
-      '50% { opacity: 0.5; }' +
-      '100% { opacity: 1; }' +
+  // Add CSS for sash hover effects
+  if (!$('#surgishop-sash-styles').length) {
+    var sashStyle = '<style id="surgishop-sash-styles">' +
+      '.surgishop-indicator:hover {' +
+      'border-color: transparent transparent #4b5563 transparent !important;' +
       '}' +
-      '.surgishop-pulse-dot {' +
-      'animation: surgishop-pulse 2s infinite;' +
+      '.surgishop-sash-hover {' +
+      'border-color: transparent transparent #4b5563 transparent;' +
       '}' +
       '</style>';
-    $('head').append(pulseStyle);
+    $('head').append(sashStyle);
   }
 
   // Add to page
@@ -127,32 +129,24 @@ function add_surgishop_indicator() {
 
   // Animate in
   setTimeout(() => {
-    indicator.css({
-      opacity: "1",
-      transform: "translateY(0)",
-    });
+    $(".surgishop-indicator").css("opacity", "0.7");
+    $(".surgishop-sash-text").css("opacity", "0.9");
   }, 100);
 
-  // Add subtle hover effects
-  indicator.hover(
+  // Add hover effects for sash
+  $(".surgishop-indicator, .surgishop-sash-text").hover(
     function () {
-      $(this).css({
-        background: "rgba(16, 185, 129, 0.15)",
-        border: "1px solid rgba(16, 185, 129, 0.5)",
-        transform: "translateY(0) scale(1.05)",
-      });
+      $(".surgishop-indicator").addClass("surgishop-sash-hover");
+      $(".surgishop-sash-text").css("opacity", "1");
     },
     function () {
-      $(this).css({
-        background: "rgba(16, 185, 129, 0.1)",
-        border: "1px solid rgba(16, 185, 129, 0.3)",
-        transform: "translateY(0) scale(1)",
-      });
+      $(".surgishop-indicator").removeClass("surgishop-sash-hover");
+      $(".surgishop-sash-text").css("opacity", "0.9");
     }
   );
 
-  // Add click handler to show info
-  indicator.click(function () {
+  // Add click handler to show info - works for both sash elements
+  $(".surgishop-indicator, .surgishop-sash-text").click(function () {
     console.log("SurgiShopERPNext: Indicator clicked, showing info");
     
     // Try frappe msgprint if available, otherwise use alert
@@ -190,30 +184,19 @@ function add_surgishop_indicator() {
 
   // Auto-fade after 10 seconds to be more discreet
   setTimeout(() => {
-    indicator.css({
-      opacity: "0.4",
-      transform: "translateY(0) scale(0.95)",
-    });
+    $(".surgishop-indicator").css("opacity", "0.4");
+    $(".surgishop-sash-text").css("opacity", "0.6");
   }, 10000);
 
   // Very subtle pulse every 60 seconds
   setInterval(() => {
-    if (indicator.length && indicator.is(":visible")) {
-      indicator
-        .animate(
-          {
-            opacity: 0.6,
-            transform: "translateY(0) scale(1)",
-          },
-          500
-        )
-        .animate(
-          {
-            opacity: 0.4,
-            transform: "translateY(0) scale(0.95)",
-          },
-          500
-        );
+    if ($(".surgishop-indicator").length && $(".surgishop-indicator").is(":visible")) {
+      $(".surgishop-indicator")
+        .animate({ opacity: 0.7 }, 500)
+        .animate({ opacity: 0.4 }, 500);
+      $(".surgishop-sash-text")
+        .animate({ opacity: 0.9 }, 500)
+        .animate({ opacity: 0.6 }, 500);
     }
   }, 60000);
 }

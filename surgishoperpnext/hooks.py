@@ -139,22 +139,22 @@ app_include_js = "/assets/surgishoperpnext/js/surgishoperpnext-v2.js"
 
 doc_events = {
 	"Purchase Receipt": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Purchase Invoice": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Stock Entry": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Stock Reconciliation": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Sales Invoice": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Delivery Note": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	}
 }
 
