@@ -82,7 +82,7 @@ The following dialogs are excluded and will use the original ERPNext barcode sca
 
 ### Test Page
 
-Access the test page at: `/gs1-barcode-test`
+Access the test page at: `https://beta.surgi.shop/gs1-barcode-test`
 
 The test page provides:
 - Manual barcode input testing
