@@ -222,13 +222,21 @@ class SurgiShopGS1BarcodeScanner {
                     this.addItemToForm(response.message, options);
                 } else {
                     this.debugLog("No item found for GTIN-01, falling back to original scan");
-                    this.originalScanBarcode(options);
+                    if (this.originalScanBarcode) {
+                        this.originalScanBarcode(options);
+                    } else {
+                        console.log("🏥 SurgiShopERPNext: No original scan function available");
+                    }
                 }
             },
             error: (error) => {
                 console.error("🏥 SurgiShopERPNext: Error looking up item", error);
                 this.debugLog(`ERROR in item lookup: ${error.message}`);
-                this.originalScanBarcode(options);
+                if (this.originalScanBarcode) {
+                    this.originalScanBarcode(options);
+                } else {
+                    console.log("🏥 SurgiShopERPNext: No original scan function available");
+                }
             }
         });
     }
@@ -250,6 +258,8 @@ class SurgiShopGS1BarcodeScanner {
             // Add item to the form based on doctype
             if (currentForm.doctype === 'Stock Entry') {
                 this.addItemToStockEntry(itemData, currentForm);
+            } else if (currentForm.doctype === 'Purchase Order') {
+                this.addItemToPurchaseOrder(itemData, currentForm);
             } else if (currentForm.doctype === 'Purchase Receipt') {
                 this.addItemToPurchaseReceipt(itemData, currentForm);
             } else if (currentForm.doctype === 'Sales Invoice') {
@@ -281,6 +291,21 @@ class SurgiShopGS1BarcodeScanner {
         
         form.refresh_field('items');
         this.debugLog("Stock Entry item added");
+    }
+
+    addItemToPurchaseOrder(itemData, form) {
+        this.debugLog("Adding item to Purchase Order");
+        
+        const newRow = form.add_child('items');
+        newRow.item_code = itemData.item_code;
+        newRow.item_name = itemData.item_name;
+        newRow.uom = itemData.uom || 'Nos';
+        newRow.qty = 1;
+        newRow.rate = itemData.rate || 0;
+        newRow.amount = newRow.qty * newRow.rate;
+        
+        form.refresh_field('items');
+        this.debugLog("Purchase Order item added");
     }
 
     addItemToPurchaseReceipt(itemData, form) {
