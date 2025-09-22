@@ -75,51 +75,50 @@ function add_surgishop_indicator() {
   }
 
   // Create the indicator element - more discreet design
-  const indicator = $(`
-		<div class="surgishop-indicator" style="
-			position: fixed;
-			bottom: 20px;
-			right: 20px;
-			background: rgba(16, 185, 129, 0.1);
-			border: 1px solid rgba(16, 185, 129, 0.3);
-			color: #059669;
-			padding: 6px 10px;
-			border-radius: 12px;
-			font-size: 11px;
-			font-weight: 500;
-			z-index: 1000;
-			cursor: pointer;
-			transition: all 0.3s ease;
-			display: flex;
-			align-items: center;
-			gap: 6px;
-			opacity: 0;
-			transform: translateY(10px);
-			backdrop-filter: blur(8px);
-			-webkit-backdrop-filter: blur(8px);
-		">
-			<div style="
-				width: 6px;
-				height: 6px;
-				background: #10b981;
-				border-radius: 50%;
-				animation: pulse 2s infinite;
-			"></div>
-			<span style="font-size: 10px;">SurgiShop</span>
-		</div>
-	`);
+  var indicatorHtml = '<div class="surgishop-indicator" style="' +
+    'position: fixed;' +
+    'bottom: 20px;' +
+    'right: 20px;' +
+    'background: rgba(16, 185, 129, 0.1);' +
+    'border: 1px solid rgba(16, 185, 129, 0.3);' +
+    'color: #059669;' +
+    'padding: 6px 10px;' +
+    'border-radius: 12px;' +
+    'font-size: 11px;' +
+    'font-weight: 500;' +
+    'z-index: 1000;' +
+    'cursor: pointer;' +
+    'transition: all 0.3s ease;' +
+    'display: flex;' +
+    'align-items: center;' +
+    'gap: 6px;' +
+    'opacity: 0;' +
+    'transform: translateY(10px);' +
+    '">' +
+    '<div class="surgishop-pulse-dot" style="' +
+    'width: 6px;' +
+    'height: 6px;' +
+    'background: #10b981;' +
+    'border-radius: 50%;' +
+    '"></div>' +
+    '<span style="font-size: 10px;">SurgiShop</span>' +
+    '</div>';
+  
+  var indicator = $(indicatorHtml);
 
   // Add CSS animation for pulse effect
   if (!$('#surgishop-pulse-animation').length) {
-    $('head').append(`
-      <style id="surgishop-pulse-animation">
-        @keyframes pulse {
-          0% { opacity: 1; }
-          50% { opacity: 0.5; }
-          100% { opacity: 1; }
-        }
-      </style>
-    `);
+    var pulseStyle = '<style id="surgishop-pulse-animation">' +
+      '@keyframes surgishop-pulse {' +
+      '0% { opacity: 1; }' +
+      '50% { opacity: 0.5; }' +
+      '100% { opacity: 1; }' +
+      '}' +
+      '.surgishop-pulse-dot {' +
+      'animation: surgishop-pulse 2s infinite;' +
+      '}' +
+      '</style>';
+    $('head').append(pulseStyle);
   }
 
   // Add to page
@@ -159,26 +158,26 @@ function add_surgishop_indicator() {
     // Try frappe msgprint if available, otherwise use alert
     if (typeof frappe !== 'undefined' && frappe.msgprint) {
       try {
+        var messageHtml = '<div style="text-align: center; padding: 20px;">' +
+          '<div style="font-size: 48px; color: #10b981; margin-bottom: 16px;">✓</div>' +
+          '<h3 style="color: #1f2937; margin-bottom: 12px;">Stock Override Active</h3>' +
+          '<p style="color: #6b7280; margin-bottom: 20px;">' +
+          'The SurgiShopERPNext app is successfully running and overriding ' +
+          'stock validation to allow expired products in inbound transactions.' +
+          '</p>' +
+          '<div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: left;">' +
+          '<strong style="color: #1f2937;">Protected Transactions:</strong><br>' +
+          '<span style="color: #059669;">✓ Purchase Receipt</span><br>' +
+          '<span style="color: #059669;">✓ Purchase Invoice</span><br>' +
+          '<span style="color: #059669;">✓ Stock Entry (Material Receipt)</span><br>' +
+          '<span style="color: #059669;">✓ Stock Reconciliation</span><br>' +
+          '<span style="color: #059669;">✓ Sales Returns</span>' +
+          '</div>' +
+          '</div>';
+        
         frappe.msgprint({
           title: "SurgiShopERPNext Status",
-          message: `
-            <div style="text-align: center; padding: 20px;">
-              <div style="font-size: 48px; color: #10b981; margin-bottom: 16px;">✓</div>
-              <h3 style="color: #1f2937; margin-bottom: 12px;">Stock Override Active</h3>
-              <p style="color: #6b7280; margin-bottom: 20px;">
-                The SurgiShopERPNext app is successfully running and overriding 
-                stock validation to allow expired products in inbound transactions.
-              </p>
-              <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: left;">
-                <strong style="color: #1f2937;">Protected Transactions:</strong><br>
-                <span style="color: #059669;">✓ Purchase Receipt</span><br>
-                <span style="color: #059669;">✓ Purchase Invoice</span><br>
-                <span style="color: #059669;">✓ Stock Entry (Material Receipt)</span><br>
-                <span style="color: #059669;">✓ Stock Reconciliation</span><br>
-                <span style="color: #059669;">✓ Sales Returns</span>
-              </div>
-            </div>
-          `,
+          message: messageHtml,
         });
       } catch (e) {
         console.log("SurgiShopERPNext: Frappe msgprint failed, using alert");
