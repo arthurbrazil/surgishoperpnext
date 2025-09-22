@@ -148,13 +148,13 @@ class SurgiShopGS1BarcodeScanner {
         console.log("🏥 SurgiShopERPNext: Parsing GS1 barcode", barcode);
         
         try {
-            // Use bark.js to parse GS1 barcode
-            const parsed = bark.parse(barcode);
+            // Use bark.js to parse GS1 barcode (bark is a function, not an object with parse method)
+            const parsed = bark(barcode);
             this.debugLog(`Bark.js parsed result:`, parsed);
             
             // Look for GTIN-01 (01) in the parsed data
-            if (parsed && parsed.data) {
-                for (const item of parsed.data) {
+            if (parsed && parsed.elements) {
+                for (const item of parsed.elements) {
                     if (item.ai === '01') { // GTIN-01 Application Identifier
                         this.debugLog(`Found GTIN-01: ${item.value}`);
                         return item.value;
