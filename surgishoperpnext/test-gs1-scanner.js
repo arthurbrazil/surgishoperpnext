@@ -5,6 +5,7 @@
 
 console.log("🏥 SurgiShopERPNext: GS1 Barcode Scanner Test Script");
 console.log("Domain: beta.surgi.shop");
+console.log("ERPNext Home: https://beta.surgi.shop/app/home");
 console.log("Test Page: https://beta.surgi.shop/gs1-barcode-test");
 
 // Test function to run all GS1 scanner tests
@@ -100,11 +101,32 @@ function testBarcodeScanInForm(gtin) {
     window.surgiShopGS1Scanner.processGS1Barcode({ barcode: gtin });
 }
 
+// Test function for ERPNext forms
+function testInERPNextForm(gtin) {
+    console.log(`🏥 Testing in ERPNext form: ${gtin}`);
+    
+    // Check if we're in an ERPNext form
+    if (frappe.get_cur_frm()) {
+        console.log("✅ In ERPNext form:", frappe.get_cur_frm().doctype);
+        window.surgiShopGS1Scanner.processGS1Barcode({ barcode: gtin });
+    } else {
+        console.log("❌ Not in an ERPNext form. Please open a form first (Stock Entry, Purchase Receipt, etc.)");
+    }
+}
+
+// Test function to navigate to ERPNext forms
+function navigateToERPNextForm(doctype) {
+    console.log(`🏥 Navigating to ${doctype} form`);
+    frappe.set_route("Form", doctype, "new");
+}
+
 // Quick test commands
 console.log("🏥 Available test commands:");
 console.log("runGS1ScannerTests() - Run all tests");
 console.log("testGTIN('01234567890123') - Test specific GTIN");
 console.log("testBarcodeScanInForm('01234567890123') - Test barcode scan in form");
+console.log("testInERPNextForm('01234567890123') - Test in current ERPNext form");
+console.log("navigateToERPNextForm('Stock Entry') - Navigate to Stock Entry form");
 console.log("window.surgiShopGS1Scanner.debugMode = true - Enable debug mode");
 
 // Auto-run tests if scanner is ready

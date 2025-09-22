@@ -84,6 +84,15 @@ The following dialogs are excluded and will use the original ERPNext barcode sca
 
 Access the test page at: `https://beta.surgi.shop/gs1-barcode-test`
 
+**ERPNext Home**: `https://beta.surgi.shop/app/home`
+
+## Quick Start for beta.surgi.shop
+
+1. **Access ERPNext**: Go to `https://beta.surgi.shop/app/home`
+2. **Test Page**: Visit `https://beta.surgi.shop/gs1-barcode-test`
+3. **Create Test Items**: Add items with GTIN-01 barcodes
+4. **Test in Forms**: Try scanning in Stock Entry, Purchase Receipt, etc.
+
 The test page provides:
 - Manual barcode input testing
 - Sample GTIN-01 codes for testing
