@@ -350,8 +350,8 @@ $(document).ready(function() {
     window.surgiShopGS1Scanner = new SurgiShopGS1BarcodeScanner();
 });
 
-// Also initialize when frappe is ready
-if (typeof frappe !== 'undefined') {
+// Also initialize when frappe is ready (with safety check)
+if (typeof frappe !== 'undefined' && frappe.ready) {
     frappe.ready(function() {
         console.log("🏥 SurgiShopERPNext: Frappe ready, GS1 Barcode Scanner initialized");
     });
