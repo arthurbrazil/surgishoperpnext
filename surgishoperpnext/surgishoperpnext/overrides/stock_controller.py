@@ -11,12 +11,13 @@ _original_validate_serialized_batch = None
 
 def disable_batch_expiry_validation(doc, method):
 	"""
-	Disable batch expiry validation for inbound transactions by temporarily
+	Disable batch expiry validation for ALL transactions by temporarily
 	monkey-patching the StockController validation method.
+	This allows expired items for research purposes in both inbound and outbound transactions.
 	"""
 	global _original_validate_serialized_batch
 	
-	frappe.logger().info(f"SurgiShopERPNext: Disabling batch validation for {doc.doctype}")
+	frappe.logger().info(f"SurgiShopERPNext: Disabling batch expiry validation for all transactions - {doc.doctype}")
 	
 	# Import StockController
 	try:
@@ -26,17 +27,9 @@ def disable_batch_expiry_validation(doc, method):
 		if _original_validate_serialized_batch is None:
 			_original_validate_serialized_batch = StockController.validate_serialized_batch
 		
-		# Check if this is an inbound document
-		is_inbound_doc = doc.doctype in ["Purchase Receipt", "Purchase Invoice"] and not doc.get("is_return")
-		
-		if is_inbound_doc:
-			frappe.logger().info(f"SurgiShopERPNext: Temporarily disabling batch expiry validation for {doc.doctype}")
-			# Replace with a no-op function for inbound transactions
-			StockController.validate_serialized_batch = lambda self: None
-		else:
-			# Ensure original function is restored for non-inbound transactions
-			if _original_validate_serialized_batch:
-				StockController.validate_serialized_batch = _original_validate_serialized_batch
+		frappe.logger().info(f"SurgiShopERPNext: Completely disabling batch expiry validation for {doc.doctype} (research purposes)")
+		# Replace with a no-op function for ALL transactions
+		StockController.validate_serialized_batch = lambda self: None
 				
 	except Exception as e:
 		frappe.logger().error(f"SurgiShopERPNext: Error in disable_batch_expiry_validation: {str(e)}")

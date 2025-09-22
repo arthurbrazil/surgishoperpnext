@@ -154,18 +154,23 @@ function add_surgishop_indicator() {
       try {
         var messageHtml = '<div style="text-align: center; padding: 20px;">' +
           '<div style="font-size: 48px; color: #10b981; margin-bottom: 16px;">✓</div>' +
-          '<h3 style="color: #1f2937; margin-bottom: 12px;">Stock Override Active</h3>' +
+          '<h3 style="color: #1f2937; margin-bottom: 12px;">Batch Expiry Override Active</h3>' +
           '<p style="color: #6b7280; margin-bottom: 20px;">' +
-          'The SurgiShopERPNext app is successfully running and overriding ' +
-          'stock validation to allow expired products in inbound transactions.' +
+          'The SurgiShopERPNext app is successfully running and completely disabling ' +
+          'batch expiry validation for ALL transactions (research purposes).' +
           '</p>' +
           '<div style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: left;">' +
-          '<strong style="color: #1f2937;">Protected Transactions:</strong><br>' +
-          '<span style="color: #059669;">✓ Purchase Receipt</span><br>' +
-          '<span style="color: #059669;">✓ Purchase Invoice</span><br>' +
-          '<span style="color: #059669;">✓ Stock Entry (Material Receipt)</span><br>' +
+          '<strong style="color: #1f2937;">Override Applied To:</strong><br>' +
+          '<span style="color: #059669;">✓ Purchase Receipt (Inbound)</span><br>' +
+          '<span style="color: #059669;">✓ Purchase Invoice (Inbound)</span><br>' +
+          '<span style="color: #059669;">✓ Stock Entry (All Types)</span><br>' +
           '<span style="color: #059669;">✓ Stock Reconciliation</span><br>' +
-          '<span style="color: #059669;">✓ Sales Returns</span>' +
+          '<span style="color: #059669;">✓ Sales Invoice (Outbound)</span><br>' +
+          '<span style="color: #059669;">✓ Delivery Note (Outbound)</span>' +
+          '</div>' +
+          '<div style="background: #fef3c7; padding: 12px; border-radius: 8px; margin-top: 12px; text-align: left;">' +
+          '<strong style="color: #92400e;">⚠️ Research Use Only</strong><br>' +
+          '<span style="color: #92400e; font-size: 12px;">Expired products enabled for research purposes.</span>' +
           '</div>' +
           '</div>';
         
@@ -175,10 +180,10 @@ function add_surgishop_indicator() {
         });
       } catch (e) {
         console.log("SurgiShopERPNext: Frappe msgprint failed, using alert");
-        alert("✓ SurgiShopERPNext Override Active\n\nStock validation override is working for inbound transactions:\n• Purchase Receipt\n• Purchase Invoice\n• Stock Entry (Material Receipt)\n• Stock Reconciliation\n• Sales Returns");
+        alert("✓ SurgiShopERPNext Batch Expiry Override Active\n\nBatch expiry validation disabled for ALL transactions (research purposes):\n• Purchase Receipt (Inbound)\n• Purchase Invoice (Inbound)\n• Stock Entry (All Types)\n• Stock Reconciliation\n• Sales Invoice (Outbound)\n• Delivery Note (Outbound)\n\n⚠️ Research Use Only - Expired products enabled");
       }
     } else {
-      alert("✓ SurgiShopERPNext Override Active\n\nStock validation override is working for inbound transactions:\n• Purchase Receipt\n• Purchase Invoice\n• Stock Entry (Material Receipt)\n• Stock Reconciliation\n• Sales Returns");
+      alert("✓ SurgiShopERPNext Batch Expiry Override Active\n\nBatch expiry validation disabled for ALL transactions (research purposes):\n• Purchase Receipt (Inbound)\n• Purchase Invoice (Inbound)\n• Stock Entry (All Types)\n• Stock Reconciliation\n• Sales Invoice (Outbound)\n• Delivery Note (Outbound)\n\n⚠️ Research Use Only - Expired products enabled");
     }
   });
 
@@ -203,7 +208,7 @@ function add_surgishop_indicator() {
 
 // Also add a console log for developers
 console.log(
-  "%c🏥 SurgiShopERPNext Override Active",
+  "%c🏥 SurgiShopERPNext Batch Expiry Override Active",
   "color: #10b981; font-weight: bold; font-size: 14px;"
 );
-console.log("Stock validation override is active for inbound transactions.");
+console.log("Batch expiry validation completely disabled for ALL transactions (research purposes).");
