@@ -21,27 +21,43 @@ class SurgiShopGS1BarcodeScanner {
 
     init() {
         console.log("🏥 SurgiShopERPNext: Initializing GS1 Barcode Scanner...");
-        this.loadBarkJS();
+        this.checkBarkJS();
         this.setupGlobalBarcodeOverride();
         this.setupEventListeners();
     }
 
-    loadBarkJS() {
-        console.log("🏥 SurgiShopERPNext: Loading local bark.js library...");
+    checkBarkJS() {
+        console.log("🏥 SurgiShopERPNext: Checking for bark.js library...");
+        console.log("🏥 SurgiShopERPNext: typeof bark =", typeof bark);
+        console.log("🏥 SurgiShopERPNext: window.bark =", window.bark);
         
-        // Load local bark.js file
-        const script = document.createElement('script');
-        script.src = '/assets/surgishoperpnext/js/bark.js';
-        script.onload = () => {
+        // Check if bark.js is already loaded (from hooks.py)
+        if (typeof bark !== 'undefined') {
             this.barkLoaded = true;
-            console.log("🏥 SurgiShopERPNext: Local bark.js loaded successfully");
-            this.debugLog("Local bark.js library loaded and ready");
-        };
-        script.onerror = () => {
-            console.error("🏥 SurgiShopERPNext: Failed to load local bark.js");
-            this.debugLog("ERROR: Failed to load local bark.js library");
-        };
-        document.head.appendChild(script);
+            console.log("🏥 SurgiShopERPNext: bark.js already loaded from hooks.py");
+            this.debugLog("Bark.js library already available");
+        } else {
+            console.log("🏥 SurgiShopERPNext: bark.js not found, waiting for it to load...");
+            this.debugLog("Waiting for bark.js to load from hooks.py");
+            
+            // Wait for bark.js to load
+            let attempts = 0;
+            const checkBark = setInterval(() => {
+                attempts++;
+                console.log(`🏥 SurgiShopERPNext: Checking for bark.js (attempt ${attempts})`);
+                
+                if (typeof bark !== 'undefined') {
+                    clearInterval(checkBark);
+                    this.barkLoaded = true;
+                    console.log("🏥 SurgiShopERPNext: bark.js loaded successfully");
+                    this.debugLog("Bark.js library loaded and ready");
+                } else if (attempts >= 50) { // 5 seconds at 100ms intervals
+                    clearInterval(checkBark);
+                    console.error("🏥 SurgiShopERPNext: bark.js failed to load within timeout");
+                    this.debugLog("ERROR: bark.js failed to load within timeout");
+                }
+            }, 100);
+        }
     }
 
     setupGlobalBarcodeOverride() {
