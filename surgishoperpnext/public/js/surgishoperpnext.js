@@ -1,34 +1,54 @@
+// Wait for frappe to be available before executing
+function waitForFrappe() {
+  console.log("SurgiShopERPNext: Waiting for frappe...");
+  
+  if (typeof frappe !== 'undefined' && frappe.ready) {
+    console.log("SurgiShopERPNext: Frappe available, setting up");
+    
+    frappe.ready(function () {
+      console.log("SurgiShopERPNext: Frappe ready");
+      
+      // Try to add indicator when frappe is ready
+      setTimeout(add_surgishop_indicator, 500);
+      
+      // Also trigger on page load for desk
+      $(document).on("page-change", function () {
+        console.log("SurgiShopERPNext: Page changed to", cur_page ? cur_page.page_name : "unknown");
+        if (cur_page && cur_page.page_name === "desktop") {
+          add_surgishop_indicator();
+        }
+      });
+      
+      // Additional trigger for route changes
+      if (frappe.router && frappe.router.on) {
+        frappe.router.on('change', function() {
+          console.log("SurgiShopERPNext: Route changed to", frappe.get_route_str());
+          if (frappe.get_route_str() === "" || frappe.get_route_str() === "desk") {
+            setTimeout(add_surgishop_indicator, 500);
+          }
+        });
+      }
+    });
+  } else {
+    console.log("SurgiShopERPNext: Frappe not ready, retrying...");
+    setTimeout(waitForFrappe, 100);
+  }
+}
+
 // Multiple ways to ensure the indicator loads
 $(document).ready(function() {
   console.log("SurgiShopERPNext: Document ready");
   
-  // Try to add indicator immediately if we're on desk
+  // Start waiting for frappe
+  waitForFrappe();
+  
+  // Also try with basic timing as fallback
   if (window.location.pathname === "/app" || window.location.pathname.startsWith("/app/")) {
-    setTimeout(add_surgishop_indicator, 1000);
-  }
-});
-
-frappe.ready(function () {
-  console.log("SurgiShopERPNext: Frappe ready");
-  
-  // Try to add indicator when frappe is ready
-  setTimeout(add_surgishop_indicator, 500);
-  
-  // Also trigger on page load for desk
-  $(document).on("page-change", function () {
-    console.log("SurgiShopERPNext: Page changed to", cur_page ? cur_page.page_name : "unknown");
-    if (cur_page && cur_page.page_name === "desktop") {
+    setTimeout(function() {
+      console.log("SurgiShopERPNext: Fallback timer trigger");
       add_surgishop_indicator();
-    }
-  });
-  
-  // Additional trigger for route changes
-  frappe.router.on('change', function() {
-    console.log("SurgiShopERPNext: Route changed to", frappe.get_route_str());
-    if (frappe.get_route_str() === "" || frappe.get_route_str() === "desk") {
-      setTimeout(add_surgishop_indicator, 500);
-    }
-  });
+    }, 2000);
+  }
 });
 
 function add_surgishop_indicator() {
