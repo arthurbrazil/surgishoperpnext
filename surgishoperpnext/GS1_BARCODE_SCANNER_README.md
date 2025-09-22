@@ -228,6 +228,7 @@ window.surgiShopGS1Scanner.debugMode = true;
 ```
 surgishoperpnext/
 ├── public/js/
+│   ├── bark.js                         # Local GS1 barcode parser
 │   └── gs1-barcode-scanner.js          # Main scanner implementation
 ├── surgishoperpnext/api/
 │   └── barcode.py                      # Backend API methods
@@ -238,7 +239,7 @@ surgishoperpnext/
 
 ## Dependencies
 
-- **bark.js**: GS1 barcode parsing library (loaded from CDN)
+- **bark.js**: GS1 barcode parsing library (included locally)
 - **jQuery**: For DOM manipulation
 - **Frappe Framework**: For ERPNext integration
 

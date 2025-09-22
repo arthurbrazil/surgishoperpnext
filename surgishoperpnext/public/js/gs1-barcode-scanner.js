@@ -27,19 +27,19 @@ class SurgiShopGS1BarcodeScanner {
     }
 
     loadBarkJS() {
-        console.log("🏥 SurgiShopERPNext: Loading bark.js library...");
+        console.log("🏥 SurgiShopERPNext: Loading local bark.js library...");
         
-        // Load bark.js from CDN
+        // Load local bark.js file
         const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/bark@latest/dist/bark.min.js';
+        script.src = '/assets/surgishoperpnext/js/bark.js';
         script.onload = () => {
             this.barkLoaded = true;
-            console.log("🏥 SurgiShopERPNext: bark.js loaded successfully");
-            this.debugLog("Bark.js library loaded and ready");
+            console.log("🏥 SurgiShopERPNext: Local bark.js loaded successfully");
+            this.debugLog("Local bark.js library loaded and ready");
         };
         script.onerror = () => {
-            console.error("🏥 SurgiShopERPNext: Failed to load bark.js");
-            this.debugLog("ERROR: Failed to load bark.js library");
+            console.error("🏥 SurgiShopERPNext: Failed to load local bark.js");
+            this.debugLog("ERROR: Failed to load local bark.js library");
         };
         document.head.appendChild(script);
     }
