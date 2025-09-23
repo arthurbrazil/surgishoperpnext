@@ -4,4 +4,3 @@
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
-surgishoperpnext.patches.v1_0_0.fix_desktop_page_error.execute
