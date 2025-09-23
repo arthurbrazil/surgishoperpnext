@@ -12,7 +12,7 @@ def get_desktop_page(page=None, **kwargs):
     This fixes the version mismatch between Frappe v15.83.0 and ERPNext v15.80.0
     """
     # If no page is provided, try to get the default workspace
-    if page is None:
+    if page is None or page == "":
         try:
             # Try to get the first available workspace
             workspaces = frappe.get_all("Workspace", fields=["name"], limit=1)
