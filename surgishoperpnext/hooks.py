@@ -30,7 +30,7 @@ app_include_js = [
 	"/assets/surgishoperpnext/js/bark.js?v=1.0.5",
 	"/assets/surgishoperpnext/js/surgishoperpnext-v2.js",
 	"/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.5",
-	"/assets/surgishoperpnext/js/barcode-override.js?v=1.0.7"
+	"/assets/surgishoperpnext/js/barcode-override.js?v=1.0.8"
 ]
 
 # include js, css files in header of web template

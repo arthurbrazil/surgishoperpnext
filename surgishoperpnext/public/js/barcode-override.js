@@ -69,7 +69,7 @@ function setupBarcodeOverride() {
                             // Check if we have batch information and trigger batch dialog
                             setTimeout(() => {
                                 triggerBatchDialogIfNeeded(searchValue, response.message);
-                            }, 100);
+                            }, 500);
                             
                             return transformedResponse;
                         } else {
@@ -147,7 +147,7 @@ function overrideBarcodeScannerClass() {
                             // Check if we have batch information and trigger batch dialog
                             setTimeout(() => {
                                 triggerBatchDialogIfNeeded(input, response.message);
-                            }, 100);
+                            }, 500);
                             
                             callback({ message: transformedData });
                         } else {
@@ -180,6 +180,8 @@ if (typeof frappe !== 'undefined' && frappe.ready) {
  */
 function triggerBatchDialogIfNeeded(barcodeValue, itemData) {
     console.log("🏥 SurgiShopERPNext: Checking if batch dialog should be triggered...");
+    console.log("🏥 SurgiShopERPNext: Barcode value:", barcodeValue);
+    console.log("🏥 SurgiShopERPNext: Item data:", itemData);
     
     // Check if we have a current form
     if (!frappe.cur_frm) {
@@ -188,6 +190,7 @@ function triggerBatchDialogIfNeeded(barcodeValue, itemData) {
     }
     
     const frm = frappe.cur_frm;
+    console.log("🏥 SurgiShopERPNext: Current form doctype:", frm.doctype);
     
     // Check if item requires batch tracking
     if (!itemData.has_batch_no) {
@@ -198,15 +201,25 @@ function triggerBatchDialogIfNeeded(barcodeValue, itemData) {
     // Parse GS1 barcode to extract batch information
     if (window.surgiShopGS1Scanner) {
         const parsedData = window.surgiShopGS1Scanner.parseGS1Barcode(barcodeValue);
+        console.log("🏥 SurgiShopERPNext: Parsed GS1 data:", parsedData);
+        
         if (parsedData && parsedData.lot) {
             console.log("🏥 SurgiShopERPNext: GS1 barcode contains batch info:", parsedData.lot);
             
             // Check if we're in a form that supports batch selection
             if (frm.doctype && ['Purchase Receipt', 'Purchase Invoice', 'Stock Entry', 'Sales Invoice', 'Delivery Note'].includes(frm.doctype)) {
                 console.log("🏥 SurgiShopERPNext: Triggering batch dialog for", frm.doctype);
-                showBatchSelector(frm, itemData.item_code, parsedData);
+                
+                // Wait a bit more to ensure the item row is fully added
+                setTimeout(() => {
+                    showBatchSelector(frm, itemData.item_code, parsedData);
+                }, 1000);
             }
+        } else {
+            console.log("🏥 SurgiShopERPNext: No batch info found in GS1 barcode");
         }
+    } else {
+        console.log("🏥 SurgiShopERPNext: GS1 Scanner not available");
     }
 }
 
@@ -215,53 +228,77 @@ function triggerBatchDialogIfNeeded(barcodeValue, itemData) {
  */
 function showBatchSelector(frm, itemCode, gs1Data) {
     console.log("🏥 SurgiShopERPNext: Showing batch selector for item:", itemCode);
+    console.log("🏥 SurgiShopERPNext: GS1 data:", gs1Data);
+    
+    // Check if we have a valid form and item
+    if (!frm || !itemCode) {
+        console.error("🏥 SurgiShopERPNext: Invalid form or item code");
+        return;
+    }
     
     // Load the batch selector utility
     frappe.require('assets/erpnext/js/utils/serial_no_batch_selector.js', function() {
+        console.log("🏥 SurgiShopERPNext: SerialNoBatchSelector loaded");
+        
         if (typeof erpnext.SerialNoBatchSelector !== 'undefined') {
-            const batchSelector = new erpnext.SerialNoBatchSelector({
-                frm: frm,
-                item: itemCode,
-                callback: function(selectedData) {
-                    console.log("🏥 SurgiShopERPNext: Batch selected:", selectedData);
+            try {
+                const batchSelector = new erpnext.SerialNoBatchSelector({
+                    frm: frm,
+                    item: itemCode,
+                    callback: function(selectedData) {
+                        console.log("🏥 SurgiShopERPNext: Batch selected:", selectedData);
+                        
+                        // If we have GS1 batch data, try to create or find the batch
+                        if (gs1Data && gs1Data.lot) {
+                            handleGS1BatchData(frm, itemCode, gs1Data, selectedData);
+                        }
+                    }
+                });
+                
+                console.log("🏥 SurgiShopERPNext: Batch selector created successfully");
+                
+                // If we have batch info from GS1, pre-populate the batch field
+                if (gs1Data && gs1Data.lot) {
+                    console.log("🏥 SurgiShopERPNext: Pre-populating batch field with lot:", gs1Data.lot);
                     
-                    // If we have GS1 batch data, try to create or find the batch
-                    if (gs1Data && gs1Data.lot) {
-                        handleGS1BatchData(frm, itemCode, gs1Data, selectedData);
-                    }
-                }
-            });
-            
-            // If we have batch info from GS1, pre-populate the batch field
-            if (gs1Data && gs1Data.lot) {
-                setTimeout(() => {
-                    // Try to find the batch in the dialog
-                    const batchField = batchSelector.dialog.fields_dict.batch_no;
-                    if (batchField) {
-                        // Search for existing batch with the lot number
-                        frappe.call({
-                            method: 'frappe.client.get_list',
-                            args: {
-                                doctype: 'Batch',
-                                filters: {
-                                    item: itemCode,
-                                    batch_id: ['like', `%${gs1Data.lot}%`]
-                                },
-                                fields: ['name', 'batch_id'],
-                                limit: 10
-                            },
-                            callback: function(response) {
-                                if (response.message && response.message.length > 0) {
-                                    console.log("🏥 SurgiShopERPNext: Found existing batches:", response.message);
-                                    // Pre-select the first matching batch
-                                    batchField.set_value(response.message[0].name);
-                                } else {
-                                    console.log("🏥 SurgiShopERPNext: No existing batch found for lot:", gs1Data.lot);
-                                }
+                    setTimeout(() => {
+                        try {
+                            // Try to find the batch in the dialog
+                            if (batchSelector.dialog && batchSelector.dialog.fields_dict && batchSelector.dialog.fields_dict.batch_no) {
+                                const batchField = batchSelector.dialog.fields_dict.batch_no;
+                                
+                                // Search for existing batch with the lot number
+                                frappe.call({
+                                    method: 'frappe.client.get_list',
+                                    args: {
+                                        doctype: 'Batch',
+                                        filters: {
+                                            item: itemCode,
+                                            batch_id: ['like', `%${gs1Data.lot}%`]
+                                        },
+                                        fields: ['name', 'batch_id'],
+                                        limit: 10
+                                    },
+                                    callback: function(response) {
+                                        if (response.message && response.message.length > 0) {
+                                            console.log("🏥 SurgiShopERPNext: Found existing batches:", response.message);
+                                            // Pre-select the first matching batch
+                                            batchField.set_value(response.message[0].name);
+                                        } else {
+                                            console.log("🏥 SurgiShopERPNext: No existing batch found for lot:", gs1Data.lot);
+                                        }
+                                    }
+                                });
+                            } else {
+                                console.log("🏥 SurgiShopERPNext: Batch field not found in dialog");
                             }
-                        });
-                    }
-                }, 500);
+                        } catch (error) {
+                            console.error("🏥 SurgiShopERPNext: Error pre-populating batch field:", error);
+                        }
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error("🏥 SurgiShopERPNext: Error creating batch selector:", error);
             }
         } else {
             console.error("🏥 SurgiShopERPNext: SerialNoBatchSelector not available");
