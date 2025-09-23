@@ -27,4 +27,37 @@ def get_desktop_page(page=None, **kwargs):
     
     # Import the original function and call it
     from frappe.desk.desktop import get_desktop_page as original_get_desktop_page
-    return original_get_desktop_page(page, **kwargs)
+    
+    try:
+        return original_get_desktop_page(page, **kwargs)
+    except Exception as e:
+        # If there's still an error, try to get the workspace directly
+        frappe.logger().error(f"SurgiShopERPNext: Error in get_desktop_page: {str(e)}")
+        
+        try:
+            # Try to get workspace data directly
+            workspace_name = json.loads(page)["name"]
+            workspace = frappe.get_doc("Workspace", workspace_name)
+            
+            return {
+                "workspace": {
+                    "name": workspace.name,
+                    "title": workspace.title,
+                    "shortcuts": workspace.shortcuts or [],
+                    "charts": workspace.charts or [],
+                    "cards": workspace.cards or []
+                }
+            }
+        except Exception as e2:
+            frappe.logger().error(f"SurgiShopERPNext: Error getting workspace: {str(e2)}")
+            
+            # Return empty workspace
+            return {
+                "workspace": {
+                    "name": "Home",
+                    "title": "Home",
+                    "shortcuts": [],
+                    "charts": [],
+                    "cards": []
+                }
+            }
