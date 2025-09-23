@@ -81,6 +81,25 @@ def get_item_by_gtin(gtin):
     return None
 
 @frappe.whitelist()
+def scan_barcode_fallback(search_value, ctx=None):
+    """
+    Fallback barcode scanning method that integrates with ERPNext's scan_barcode API
+    This method is called when our GS1 scanner doesn't find a match
+    """
+    frappe.logger().info(f"SurgiShopERPNext: Fallback barcode scan for: {search_value}")
+    
+    # Call the original ERPNext scan_barcode method
+    from erpnext.stock.utils import scan_barcode as original_scan_barcode
+    
+    try:
+        result = original_scan_barcode(search_value, ctx or {})
+        frappe.logger().info(f"SurgiShopERPNext: Fallback scan result: {result}")
+        return result
+    except Exception as e:
+        frappe.logger().error(f"SurgiShopERPNext: Fallback scan error: {str(e)}")
+        return {}
+
+@frappe.whitelist()
 def validate_gtin_format(gtin):
     """
     Validate GTIN-01 format

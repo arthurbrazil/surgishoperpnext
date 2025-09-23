@@ -4,14 +4,25 @@ Custom Frappe app for SurgiShop with ERPNext modifications.
 
 ## Features
 
-### Stock Controller Override
+### 1. Stock Controller Override
 
 This app overrides the default ERPNext StockController behavior to allow expired products to be received into the system for inbound transactions.
 
-#### What it does:
+### 2. GS1 Barcode Scanner
+
+Advanced GS1 barcode scanning that automatically overrides ERPNext's barcode scanning to process GS1 barcodes and extract GTIN-01 codes for item lookup.
+
+#### Stock Controller Features:
 - **Allows expired products** to be received through inbound transactions (Purchase Receipt, Purchase Invoice, Stock Entry with Material Receipt, etc.)
 - **Maintains expiry validation** for outbound transactions to prevent selling expired products
 - **Preserves all other stock validation** functionality
+
+#### GS1 Barcode Scanner Features:
+- **Automatic GS1 barcode parsing** using bark.js library
+- **GTIN-01 extraction** from GS1 barcodes
+- **Seamless integration** with ERPNext's barcode scanning system
+- **Fallback support** for non-GS1 barcodes
+- **Universal compatibility** across all ERPNext forms
 
 #### Supported Inbound Transactions:
 - Purchase Receipt
