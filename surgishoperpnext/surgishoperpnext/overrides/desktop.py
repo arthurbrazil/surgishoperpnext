@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 
+@frappe.whitelist()
 def get_desktop_page(page=None, **kwargs):
     """
     Override get_desktop_page to handle missing page argument
