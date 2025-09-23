@@ -66,10 +66,20 @@ function setupBarcodeOverride() {
                             };
                             console.log("🏥 SurgiShopERPNext: Transformed response:", transformedResponse);
                             
-                            // Check if we have batch information and trigger batch dialog
-                            setTimeout(() => {
-                                triggerBatchDialogIfNeeded(searchValue, response.message);
-                            }, 500);
+                            // Store GS1 data for later batch dialog trigger
+                            if (window.surgiShopGS1Scanner) {
+                                const parsedData = window.surgiShopGS1Scanner.parseGS1Barcode(searchValue);
+                                if (parsedData && parsedData.lot && response.message.has_batch_no) {
+                                    // Store the data to trigger batch dialog after item is added
+                                    window.surgiShopGS1Data = {
+                                        barcode: searchValue,
+                                        itemData: response.message,
+                                        gs1Data: parsedData,
+                                        timestamp: Date.now()
+                                    };
+                                    console.log("🏥 SurgiShopERPNext: Stored GS1 data for batch dialog:", window.surgiShopGS1Data);
+                                }
+                            }
                             
                             return transformedResponse;
                         } else {
@@ -96,6 +106,9 @@ function setupBarcodeOverride() {
     
     // Also override the BarcodeScanner class for additional coverage
     overrideBarcodeScannerClass();
+    
+    // Set up form monitoring for batch dialog trigger
+    setupFormMonitoring();
 }
 
 function overrideBarcodeScannerClass() {
@@ -144,10 +157,20 @@ function overrideBarcodeScannerClass() {
                             };
                             console.log("🏥 SurgiShopERPNext: BarcodeScanner transformed data:", transformedData);
                             
-                            // Check if we have batch information and trigger batch dialog
-                            setTimeout(() => {
-                                triggerBatchDialogIfNeeded(input, response.message);
-                            }, 500);
+                            // Store GS1 data for later batch dialog trigger
+                            if (window.surgiShopGS1Scanner) {
+                                const parsedData = window.surgiShopGS1Scanner.parseGS1Barcode(input);
+                                if (parsedData && parsedData.lot && response.message.has_batch_no) {
+                                    // Store the data to trigger batch dialog after item is added
+                                    window.surgiShopGS1Data = {
+                                        barcode: input,
+                                        itemData: response.message,
+                                        gs1Data: parsedData,
+                                        timestamp: Date.now()
+                                    };
+                                    console.log("🏥 SurgiShopERPNext: Stored GS1 data for batch dialog:", window.surgiShopGS1Data);
+                                }
+                            }
                             
                             callback({ message: transformedData });
                         } else {
@@ -359,6 +382,131 @@ function handleGS1BatchData(frm, itemCode, gs1Data, selectedData) {
             }
         });
     }
+}
+
+/**
+ * Set up form monitoring to trigger batch dialog after item is added
+ */
+function setupFormMonitoring() {
+    console.log("🏥 SurgiShopERPNext: Setting up form monitoring...");
+    
+    // Monitor for form changes
+    $(document).on('form_loaded', function() {
+        console.log("🏥 SurgiShopERPNext: Form loaded, setting up batch dialog monitoring");
+        
+        // Check if we have stored GS1 data
+        if (window.surgiShopGS1Data) {
+            const data = window.surgiShopGS1Data;
+            const now = Date.now();
+            
+            // Only process if data is recent (within last 10 seconds)
+            if (now - data.timestamp < 10000) {
+                console.log("🏥 SurgiShopERPNext: Found recent GS1 data, checking for batch dialog trigger");
+                
+                // Wait a bit for the form to be fully ready
+                setTimeout(() => {
+                    triggerBatchDialogFromStoredData(data);
+                }, 2000);
+            } else {
+                console.log("🏥 SurgiShopERPNext: GS1 data is too old, clearing");
+                delete window.surgiShopGS1Data;
+            }
+        }
+    });
+    
+    // Also monitor for item table changes
+    $(document).on('items_added', function() {
+        console.log("🏥 SurgiShopERPNext: Items added event detected");
+        
+        if (window.surgiShopGS1Data) {
+            const data = window.surgiShopGS1Data;
+            const now = Date.now();
+            
+            if (now - data.timestamp < 10000) {
+                console.log("🏥 SurgiShopERPNext: Triggering batch dialog after items added");
+                setTimeout(() => {
+                    triggerBatchDialogFromStoredData(data);
+                }, 1000);
+            }
+        }
+    });
+    
+    // Monitor for form refresh events (when items are added)
+    $(document).on('form_refresh', function() {
+        console.log("🏥 SurgiShopERPNext: Form refresh detected");
+        
+        if (window.surgiShopGS1Data) {
+            const data = window.surgiShopGS1Data;
+            const now = Date.now();
+            
+            if (now - data.timestamp < 10000) {
+                console.log("🏥 SurgiShopERPNext: Triggering batch dialog after form refresh");
+                setTimeout(() => {
+                    triggerBatchDialogFromStoredData(data);
+                }, 1500);
+            }
+        }
+    });
+    
+    // Also set up a periodic check as a fallback
+    setInterval(() => {
+        if (window.surgiShopGS1Data) {
+            const data = window.surgiShopGS1Data;
+            const now = Date.now();
+            
+            // If data is recent and we have a form, try to trigger
+            if (now - data.timestamp < 5000 && frappe.cur_frm) {
+                console.log("🏥 SurgiShopERPNext: Periodic check - triggering batch dialog");
+                triggerBatchDialogFromStoredData(data);
+            } else if (now - data.timestamp > 10000) {
+                // Clear old data
+                delete window.surgiShopGS1Data;
+            }
+        }
+    }, 2000);
+}
+
+/**
+ * Trigger batch dialog from stored GS1 data
+ */
+function triggerBatchDialogFromStoredData(data) {
+    console.log("🏥 SurgiShopERPNext: Triggering batch dialog from stored data:", data);
+    
+    // Check if we have a current form
+    if (!frappe.cur_frm) {
+        console.log("🏥 SurgiShopERPNext: No current form, retrying in 1 second");
+        setTimeout(() => {
+            triggerBatchDialogFromStoredData(data);
+        }, 1000);
+        return;
+    }
+    
+    const frm = frappe.cur_frm;
+    console.log("🏥 SurgiShopERPNext: Current form doctype:", frm.doctype);
+    
+    // Check if we're in a supported form
+    if (!frm.doctype || !['Purchase Receipt', 'Purchase Invoice', 'Stock Entry', 'Sales Invoice', 'Delivery Note'].includes(frm.doctype)) {
+        console.log("🏥 SurgiShopERPNext: Form not supported for batch dialog");
+        return;
+    }
+    
+    // Check if item requires batch tracking
+    if (!data.itemData.has_batch_no) {
+        console.log("🏥 SurgiShopERPNext: Item doesn't require batch tracking");
+        return;
+    }
+    
+    // Check if we have batch info
+    if (!data.gs1Data || !data.gs1Data.lot) {
+        console.log("🏥 SurgiShopERPNext: No batch info in GS1 data");
+        return;
+    }
+    
+    console.log("🏥 SurgiShopERPNext: All checks passed, showing batch selector");
+    showBatchSelector(frm, data.itemData.item_code, data.gs1Data);
+    
+    // Clear the stored data
+    delete window.surgiShopGS1Data;
 }
 
 console.log("🏥 SurgiShopERPNext: Barcode Override script loaded");
