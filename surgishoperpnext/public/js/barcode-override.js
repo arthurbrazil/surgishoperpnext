@@ -5,6 +5,9 @@
 
 console.log("🏥 SurgiShopERPNext: Loading Barcode Override...");
 
+// Fix get_desktop_page error immediately
+fixGetDesktopPageError();
+
 // Wait for the page to be ready
 $(document).ready(function() {
     console.log("🏥 SurgiShopERPNext: Document ready, setting up barcode override...");
@@ -14,6 +17,30 @@ $(document).ready(function() {
         setupBarcodeOverride();
     }, 1000);
 });
+
+function fixGetDesktopPageError() {
+    console.log("🏥 SurgiShopERPNext: Applying get_desktop_page error fix...");
+    
+    // Override frappe.call to fix get_desktop_page error
+    if (typeof frappe !== 'undefined' && frappe.call) {
+        const originalFrappeCall = frappe.call;
+        
+        frappe.call = function(options) {
+            // Fix for get_desktop_page missing page argument
+            if (options.method === 'frappe.desk.desktop.get_desktop_page') {
+                if (!options.args || !options.args.page) {
+                    options.args = options.args || {};
+                    options.args.page = 'workspace';
+                    console.log("🏥 SurgiShopERPNext: Fixed get_desktop_page call by adding default page='workspace'");
+                }
+            }
+            
+            return originalFrappeCall.call(this, options);
+        };
+        
+        console.log("🏥 SurgiShopERPNext: get_desktop_page error fix applied");
+    }
+}
 
 function setupBarcodeOverride() {
     console.log("🏥 SurgiShopERPNext: Setting up barcode override...");
