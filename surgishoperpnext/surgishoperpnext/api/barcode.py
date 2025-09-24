@@ -49,7 +49,10 @@ def get_item_by_gtin(gtin):
             "stock_uom": item.stock_uom,
             "is_stock_item": item.is_stock_item,
             "has_serial_no": item.has_serial_no,
-            "has_batch_no": item.has_batch_no
+            "has_batch_no": item.has_batch_no,
+            "default_warehouse": None,  # Add default_warehouse for compatibility
+            "has_variants": False,  # Add has_variants for compatibility
+            "variant_of": None  # Add variant_of for compatibility
         }
     
     # Fallback: search by item code if GTIN matches item code
@@ -73,7 +76,10 @@ def get_item_by_gtin(gtin):
             "stock_uom": item.stock_uom,
             "is_stock_item": item.is_stock_item,
             "has_serial_no": item.has_serial_no,
-            "has_batch_no": item.has_batch_no
+            "has_batch_no": item.has_batch_no,
+            "default_warehouse": None,  # Add default_warehouse for compatibility
+            "has_variants": False,  # Add has_variants for compatibility
+            "variant_of": None  # Add variant_of for compatibility
         }
     
     # No item found

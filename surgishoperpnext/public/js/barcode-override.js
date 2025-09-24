@@ -52,9 +52,17 @@ function setupBarcodeOverride() {
                                 ...response,
                                 message: {
                                     item_code: response.message.item_code,
+                                    item_name: response.message.item_name,
                                     barcode: response.message.barcode,
                                     uom: response.message.uom,
-                                    default_warehouse: response.message.default_warehouse || null
+                                    stock_uom: response.message.stock_uom,
+                                    rate: response.message.rate,
+                                    is_stock_item: response.message.is_stock_item,
+                                    has_serial_no: response.message.has_serial_no,
+                                    has_batch_no: response.message.has_batch_no,
+                                    default_warehouse: response.message.default_warehouse || null,
+                                    has_variants: response.message.has_variants || false,
+                                    variant_of: response.message.variant_of || null
                                 }
                             };
                             console.log("🏥 SurgiShopERPNext: Transformed response:", transformedResponse);
@@ -86,6 +94,10 @@ function setupBarcodeOverride() {
                                 }
                             });
                         }
+                    }).catch(error => {
+                        console.error("🏥 SurgiShopERPNext: Error in custom API call:", error);
+                        // Fall back to original API
+                        return window.originalFrappeCall.call(this, options);
                     });
                 }
             }
@@ -144,9 +156,17 @@ function overrideBarcodeScannerClass() {
                             // Transform to ERPNext format
                             const transformedData = {
                                 item_code: response.message.item_code,
+                                item_name: response.message.item_name,
                                 barcode: response.message.barcode,
                                 uom: response.message.uom,
-                                default_warehouse: response.message.default_warehouse || null
+                                stock_uom: response.message.stock_uom,
+                                rate: response.message.rate,
+                                is_stock_item: response.message.is_stock_item,
+                                has_serial_no: response.message.has_serial_no,
+                                has_batch_no: response.message.has_batch_no,
+                                default_warehouse: response.message.default_warehouse || null,
+                                has_variants: response.message.has_variants || false,
+                                variant_of: response.message.variant_of || null
                             };
                             console.log("🏥 SurgiShopERPNext: BarcodeScanner transformed data:", transformedData);
                             
@@ -170,6 +190,10 @@ function overrideBarcodeScannerClass() {
                             // Fall back to original API
                             super.scan_api_call(input, callback);
                         }
+                    }).catch(error => {
+                        console.error("🏥 SurgiShopERPNext: Error in BarcodeScanner custom API call:", error);
+                        // Fall back to original API
+                        super.scan_api_call(input, callback);
                     });
                     return;
                 }
