@@ -1,7 +1,7 @@
 app_name = "surgishoperpnext"
 app_title = "SurgiShopERPNext"
 app_publisher = "SurgiShop"
-app_description = "SurgiShopERPNext"
+app_description = "ERPNext app for allowing expired products in transactions for research purposes"
 app_email = "Arthur.Borges@SurgiShop.com"
 app_license = "mit"
 
@@ -26,31 +26,14 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"
-# app_include_js = [
-# 	"/assets/surgishoperpnext/js/disable-erpnext-barcode.js?v=1.0.2"
-# ]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"
-# web_include_js = "/assets/surgishoperpnext/js/surgishoperpnext.js"
 
 # include js in page
 # page_js = {"page" : "public/js/file.js"}
 
-# include js in doctype views - Load barcode scanning only for specific doctypes
-doctype_js = {
-	"Stock Entry": "/assets/surgishoperpnext/js/disable-erpnext-barcode.js?v=1.0.1,/assets/surgishoperpnext/js/bark.js?v=1.0.9,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.9,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.32,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.3",
-	"Purchase Order": "/assets/surgishoperpnext/js/disable-erpnext-barcode.js?v=1.0.1,/assets/surgishoperpnext/js/bark.js?v=1.0.9,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.9,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.32,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.3",
-	"Purchase Receipt": "/assets/surgishoperpnext/js/disable-erpnext-barcode.js?v=1.0.1,/assets/surgishoperpnext/js/bark.js?v=1.0.9,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.9,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.32,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.3",
-	"Purchase Invoice": "/assets/surgishoperpnext/js/disable-erpnext-barcode.js?v=1.0.1,/assets/surgishoperpnext/js/bark.js?v=1.0.9,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.9,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.32,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.3",
-	"Sales Invoice": "/assets/surgishoperpnext/js/disable-erpnext-barcode.js?v=1.0.1,/assets/surgishoperpnext/js/bark.js?v=1.0.9,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.9,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.32,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.3",
-	"Delivery Note": "/assets/surgishoperpnext/js/disable-erpnext-barcode.js?v=1.0.1,/assets/surgishoperpnext/js/bark.js?v=1.0.9,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.9,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.32,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.3",
-	"Stock Reconciliation": "/assets/surgishoperpnext/js/disable-erpnext-barcode.js?v=1.0.1,/assets/surgishoperpnext/js/bark.js?v=1.0.9,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.9,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.32,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.3"
-}
-
-# include js, css files in header of web template
-# web_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"
-# web_include_js = "/assets/surgishoperpnext/js/surgishoperpnext.js"
+# No JavaScript files needed for expired product functionality
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "surgishoperpnext/public/scss/website"
