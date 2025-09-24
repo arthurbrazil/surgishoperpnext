@@ -83,6 +83,55 @@ console.log("🏥 SurgiShopERPNext: Loading ERPNext Barcode Scanner Disabler..."
         console.log("🏥 SurgiShopERPNext: All ERPNext barcode scanning methods DISABLED");
     }
     
+    // Override frappe.call to intercept barcode API calls
+    if (typeof frappe !== 'undefined' && frappe.call) {
+        const originalFrappeCall = frappe.call;
+        frappe.call = function(options) {
+            // Check if this is a barcode scan API call
+            if (options && options.method && options.method.includes('scan_barcode')) {
+                console.log("🏥 SurgiShopERPNext: INTERCEPTED frappe.call barcode API:", options.method);
+                // Return a promise that resolves with null to prevent errors
+                return Promise.resolve({ message: null });
+            }
+            // For non-barcode calls, use original frappe.call
+            return originalFrappeCall.call(this, options);
+        };
+        console.log("🏥 SurgiShopERPNext: frappe.call override installed");
+    }
+    
+    // Override form barcode scanning methods more aggressively
+    if (typeof frappe !== 'undefined' && frappe.ui && frappe.ui.form) {
+        // Override Form.prototype.scan_barcode
+        if (frappe.ui.form.Form && frappe.ui.form.Form.prototype) {
+            frappe.ui.form.Form.prototype.scan_barcode = function(barcode) {
+                console.log("🏥 SurgiShopERPNext: Form.prototype.scan_barcode DISABLED");
+                // Do nothing - completely disable form barcode scanning
+                return Promise.resolve(null);
+            };
+            console.log("🏥 SurgiShopERPNext: Form.prototype.scan_barcode DISABLED");
+        }
+        
+        // Override any barcode scanning in forms
+        if (frappe.ui.form.Form && frappe.ui.form.Form.prototype) {
+            const originalRefresh = frappe.ui.form.Form.prototype.refresh;
+            frappe.ui.form.Form.prototype.refresh = function() {
+                // Call original refresh first
+                if (originalRefresh) {
+                    originalRefresh.call(this);
+                }
+                
+                // Then disable any barcode scanning
+                if (this.scan_barcode) {
+                    this.scan_barcode = function(barcode) {
+                        console.log("🏥 SurgiShopERPNext: Form scan_barcode DISABLED");
+                        return Promise.resolve(null);
+                    };
+                }
+            };
+            console.log("🏥 SurgiShopERPNext: Form refresh override installed");
+        }
+    }
+    
     // Note: Removed jQuery AJAX override as it can interfere with normal page functionality
     // Focus on targeted barcode scanner overrides instead
     
