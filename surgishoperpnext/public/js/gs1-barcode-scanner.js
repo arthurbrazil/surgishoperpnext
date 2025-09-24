@@ -140,6 +140,62 @@ class SurgiShopGS1BarcodeScanner {
             
             console.log("🏥 SurgiShopERPNext: Form prototype barcode override installed");
         }
+        
+        // Also override the barcode scanning at the transaction level
+        this.overrideTransactionBarcodeScanning();
+    }
+    
+    overrideTransactionBarcodeScanning() {
+        console.log("🏥 SurgiShopERPNext: Setting up transaction-level barcode override...");
+        
+        // Override the barcode scanning in transaction forms
+        if (typeof frappe !== 'undefined' && frappe.ui && frappe.ui.form) {
+            // Override the barcode scanning in the form's barcode input handling
+            const originalFormRefresh = frappe.ui.form.Form.prototype.refresh;
+            if (originalFormRefresh) {
+                frappe.ui.form.Form.prototype.refresh = function() {
+                    // Call original refresh
+                    originalFormRefresh.call(this);
+                    
+                    // Set up barcode input override for this form
+                    if (window.surgiShopGS1Scanner && this.doctype && 
+                        ['Stock Entry', 'Purchase Order', 'Purchase Receipt', 'Purchase Invoice', 
+                         'Sales Invoice', 'Delivery Note', 'Stock Reconciliation'].includes(this.doctype)) {
+                        
+                        console.log("🏥 SurgiShopERPNext: Setting up barcode input override for", this.doctype);
+                        
+                        // Override barcode input handling
+                        setTimeout(() => {
+                            this.setupBarcodeInputOverride();
+                        }, 1000);
+                    }
+                };
+            }
+        }
+    }
+    
+    setupBarcodeInputOverride() {
+        console.log("🏥 SurgiShopERPNext: Setting up barcode input override...");
+        
+        // Override barcode input events
+        $(document).off('keypress', '.barcode-scan').on('keypress', '.barcode-scan', (e) => {
+            if (e.which === 13) { // Enter key
+                const barcode = $(e.target).val();
+                console.log("🏥 SurgiShopERPNext: Barcode input detected:", barcode);
+                
+                if (window.surgiShopGS1Scanner) {
+                    window.surgiShopGS1Scanner.processBarcode(barcode, e.target);
+                }
+            }
+        });
+        
+        // Also override any barcode scanning events
+        $(document).off('barcode_scan').on('barcode_scan', (e, barcode) => {
+            console.log("🏥 SurgiShopERPNext: Barcode scan event detected:", barcode);
+            if (window.surgiShopGS1Scanner) {
+                window.surgiShopGS1Scanner.processBarcode(barcode, e.target);
+            }
+        });
     }
 
     setupEventListeners() {

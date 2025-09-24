@@ -8,6 +8,175 @@ console.log("🏥 SurgiShopERPNext: Loading Barcode Override...");
 // Note: Initialization is now handled by surgishoperpnext-init.js
 // This file only defines the setupBarcodeOverride function and related utilities
 
+// Immediate override to prevent ERPNext's barcode scanner from loading
+(function() {
+    'use strict';
+    
+    console.log("🏥 SurgiShopERPNext: Setting up immediate barcode override...");
+    
+    // Override the barcode scanning at the earliest possible moment
+    if (typeof frappe !== 'undefined') {
+        // Override frappe.call immediately
+        if (!window.originalFrappeCall) {
+            window.originalFrappeCall = frappe.call;
+        }
+        
+        frappe.call = function(options) {
+            // Check if this is a barcode scan API call
+            if (options.method === 'erpnext.stock.utils.scan_barcode') {
+                console.log("🏥 SurgiShopERPNext: IMMEDIATE INTERCEPT - barcode scan API call:", options.args.search_value);
+                
+                const searchValue = options.args.search_value;
+                
+                // Process with our GS1 scanner first
+                if (window.surgiShopGS1Scanner && searchValue) {
+                    const gtin = window.surgiShopGS1Scanner.parseGS1Barcode(searchValue);
+                    if (gtin) {
+                        console.log("🏥 SurgiShopERPNext: IMMEDIATE INTERCEPT - GS1 barcode detected, GTIN:", gtin);
+                        
+                        // Call our custom API instead
+                        const customOptions = {
+                            ...options,
+                            method: 'surgishoperpnext.surgishoperpnext.api.barcode.get_item_by_gtin',
+                            args: { gtin: gtin }
+                        };
+                        
+                        // Use original frappe.call for our custom API
+                        return window.originalFrappeCall.call(this, customOptions).then(response => {
+                            if (response.message) {
+                                // Transform our response to ERPNext format
+                                const transformedResponse = {
+                                    ...response,
+                                    message: {
+                                        item_code: response.message.item_code,
+                                        item_name: response.message.item_name,
+                                        barcode: response.message.barcode,
+                                        uom: response.message.uom,
+                                        stock_uom: response.message.stock_uom,
+                                        rate: response.message.rate,
+                                        is_stock_item: response.message.is_stock_item,
+                                        has_serial_no: response.message.has_serial_no,
+                                        has_batch_no: response.message.has_batch_no,
+                                        default_warehouse: response.message.default_warehouse || null,
+                                        has_variants: response.message.has_variants || false,
+                                        variant_of: response.message.variant_of || null
+                                    }
+                                };
+                                console.log("🏥 SurgiShopERPNext: IMMEDIATE INTERCEPT - Transformed response:", transformedResponse);
+                                return transformedResponse;
+                            } else {
+                                // No item found, try fallback
+                                console.log("🏥 SurgiShopERPNext: IMMEDIATE INTERCEPT - No item found, trying fallback...");
+                                return window.originalFrappeCall.call(this, {
+                                    method: 'surgishoperpnext.surgishoperpnext.api.barcode.scan_barcode_fallback',
+                                    args: {
+                                        search_value: searchValue,
+                                        ctx: options.args.ctx
+                                    }
+                                });
+                            }
+                        }).catch(error => {
+                            console.error("🏥 SurgiShopERPNext: IMMEDIATE INTERCEPT - Error in custom API call:", error);
+                            // Fall back to original API
+                            return window.originalFrappeCall.call(this, options);
+                        });
+                    }
+                }
+            }
+            
+            // For non-barcode calls or when GS1 parsing fails, use original
+            return window.originalFrappeCall.call(this, options);
+        };
+        
+        console.log("🏥 SurgiShopERPNext: Immediate frappe.call override installed");
+    }
+    
+    // Also override ERPNext's barcode scanner at the earliest possible moment
+    if (typeof erpnext !== 'undefined' && erpnext.utils) {
+        console.log("🏥 SurgiShopERPNext: Overriding ERPNext BarcodeScanner immediately...");
+        
+        // Store original BarcodeScanner if it exists
+        if (erpnext.utils.BarcodeScanner && !window.originalBarcodeScanner) {
+            window.originalBarcodeScanner = erpnext.utils.BarcodeScanner;
+        }
+        
+        // Override the BarcodeScanner class immediately
+        if (erpnext.utils.BarcodeScanner) {
+            erpnext.utils.BarcodeScanner = class extends (window.originalBarcodeScanner || Object) {
+                constructor(opts) {
+                    if (window.originalBarcodeScanner) {
+                        super(opts);
+                    }
+                    console.log("🏥 SurgiShopERPNext: IMMEDIATE BarcodeScanner override for", opts?.frm?.doctype || 'unknown');
+                }
+                
+                scan_api_call(input, callback) {
+                    console.log("🏥 SurgiShopERPNext: IMMEDIATE BarcodeScanner scan_api_call:", input);
+                    
+                    // Check if it's a GS1 barcode
+                    if (window.surgiShopGS1Scanner) {
+                        const gtin = window.surgiShopGS1Scanner.parseGS1Barcode(input);
+                        if (gtin) {
+                            console.log("🏥 SurgiShopERPNext: IMMEDIATE BarcodeScanner - GS1 barcode detected, GTIN:", gtin);
+                            
+                            // Use our custom API
+                            frappe.call({
+                                method: 'surgishoperpnext.surgishoperpnext.api.barcode.get_item_by_gtin',
+                                args: { gtin: gtin }
+                            }).then(response => {
+                                if (response.message) {
+                                    // Transform to ERPNext format
+                                    const transformedData = {
+                                        item_code: response.message.item_code,
+                                        item_name: response.message.item_name,
+                                        barcode: response.message.barcode,
+                                        uom: response.message.uom,
+                                        stock_uom: response.message.stock_uom,
+                                        rate: response.message.rate,
+                                        is_stock_item: response.message.is_stock_item,
+                                        has_serial_no: response.message.has_serial_no,
+                                        has_batch_no: response.message.has_batch_no,
+                                        default_warehouse: response.message.default_warehouse || null,
+                                        has_variants: response.message.has_variants || false,
+                                        variant_of: response.message.variant_of || null
+                                    };
+                                    console.log("🏥 SurgiShopERPNext: IMMEDIATE BarcodeScanner transformed data:", transformedData);
+                                    callback({ message: transformedData });
+                                } else {
+                                    // Fall back to original API
+                                    if (window.originalBarcodeScanner) {
+                                        super.scan_api_call(input, callback);
+                                    } else {
+                                        callback({ message: null });
+                                    }
+                                }
+                            }).catch(error => {
+                                console.error("🏥 SurgiShopERPNext: IMMEDIATE BarcodeScanner error:", error);
+                                // Fall back to original API
+                                if (window.originalBarcodeScanner) {
+                                    super.scan_api_call(input, callback);
+                                } else {
+                                    callback({ message: null });
+                                }
+                            });
+                            return;
+                        }
+                    }
+                    
+                    // For non-GS1 barcodes, use original
+                    if (window.originalBarcodeScanner) {
+                        super.scan_api_call(input, callback);
+                    } else {
+                        callback({ message: null });
+                    }
+                }
+            };
+            
+            console.log("🏥 SurgiShopERPNext: IMMEDIATE BarcodeScanner override installed");
+        }
+    }
+})();
+
 function setupBarcodeOverride() {
     console.log("🏥 SurgiShopERPNext: Setting up barcode override...");
     
