@@ -4,12 +4,25 @@
  */
 
 console.log("🏥 SurgiShopERPNext: Loading Custom Barcode Scanner Override...");
+console.log("🏥 SurgiShopERPNext: Script loaded successfully!");
 
-// Override ERPNext's BarcodeScanner class
-(function() {
+// Wait for ERPNext to be ready
+function waitForERPNext() {
+    if (typeof erpnext !== 'undefined' && erpnext.utils) {
+        console.log("🏥 SurgiShopERPNext: ERPNext is ready, proceeding with override...");
+        overrideBarcodeScanner();
+    } else {
+        console.log("🏥 SurgiShopERPNext: ERPNext not ready, waiting...");
+        setTimeout(waitForERPNext, 100);
+    }
+}
+
+function overrideBarcodeScanner() {
     'use strict';
     
     console.log("🏥 SurgiShopERPNext: Overriding ERPNext BarcodeScanner...");
+    console.log("🏥 SurgiShopERPNext: erpnext object exists:", typeof erpnext !== 'undefined');
+    console.log("🏥 SurgiShopERPNext: erpnext.utils exists:", typeof erpnext?.utils !== 'undefined');
     
     // Store original BarcodeScanner if it exists
     const OriginalBarcodeScanner = erpnext.utils.BarcodeScanner;
@@ -311,6 +324,27 @@ console.log("🏥 SurgiShopERPNext: Loading Custom Barcode Scanner Override...")
     };
     
     console.log("🏥 SurgiShopERPNext: Custom BarcodeScanner override installed");
-})();
+}
+
+// Start the override process
+waitForERPNext();
 
 console.log("🏥 SurgiShopERPNext: Custom Barcode Scanner Override loaded");
+
+// Also add a global check to ensure the script is loaded
+window.surgiShopCustomBarcodeScannerLoaded = true;
+console.log("🏥 SurgiShopERPNext: Global flag set - surgiShopCustomBarcodeScannerLoaded = true");
+
+// Add a DOM ready check as well
+$(document).ready(function() {
+    console.log("🏥 SurgiShopERPNext: DOM ready - Custom Barcode Scanner is active");
+    console.log("🏥 SurgiShopERPNext: Current doctype:", frappe.get_route()[1]);
+    
+    // Add a visible test to the page
+    if (typeof frappe !== 'undefined' && frappe.show_alert) {
+        frappe.show_alert({
+            message: "🏥 SurgiShopERPNext: Custom Barcode Scanner loaded successfully!",
+            indicator: 'green'
+        }, 5);
+    }
+});
