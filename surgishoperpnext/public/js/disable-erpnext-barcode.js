@@ -5,11 +5,143 @@
 
 console.log("🏥 SurgiShopERPNext: Loading ERPNext Barcode Scanner Disabler...");
 
-// Immediately disable ERPNext's barcode scanner - ULTRA AGGRESSIVE
+// Immediately disable ERPNext's barcode scanner - NUCLEAR APPROACH
 (function() {
     'use strict';
     
-    console.log("🏥 SurgiShopERPNext: ULTRA AGGRESSIVE DISABLING of ERPNext barcode scanner...");
+    console.log("🏥 SurgiShopERPNext: NUCLEAR DISABLING of ERPNext barcode scanner...");
+    
+    // Override the barcode scanner at the earliest possible moment
+    if (typeof window !== 'undefined') {
+        // Create a dummy BarcodeScanner that completely disables functionality
+        const NuclearBarcodeScanner = class {
+            constructor(opts) {
+                console.log("🏥 SurgiShopERPNext: NUCLEAR BarcodeScanner created - ERPNext barcode scanning NUCLEAR DISABLED");
+                this.frm = opts?.frm;
+            }
+            
+            scan_api_call(input, callback) {
+                console.log("🏥 SurgiShopERPNext: NUCLEAR BarcodeScanner scan_api_call - ERPNext barcode scanning NUCLEAR DISABLED");
+                // Do nothing - just call callback with null to prevent errors
+                if (callback) {
+                    setTimeout(() => {
+                        callback({ message: null });
+                    }, 0);
+                }
+            }
+        };
+        
+        // Override erpnext.utils.BarcodeScanner immediately
+        window.erpnext = window.erpnext || {};
+        window.erpnext.utils = window.erpnext.utils || {};
+        window.erpnext.utils.BarcodeScanner = NuclearBarcodeScanner;
+        
+        // Also override any existing BarcodeScanner
+        if (window.erpnext && window.erpnext.utils && window.erpnext.utils.BarcodeScanner) {
+            window.erpnext.utils.BarcodeScanner = NuclearBarcodeScanner;
+        }
+        
+        console.log("🏥 SurgiShopERPNext: NUCLEAR BarcodeScanner installed");
+    }
+    
+    // Override barcode scanning at the DOM level
+    if (typeof document !== 'undefined') {
+        // Override any barcode input events
+        document.addEventListener('keypress', function(e) {
+            if (e.target && e.target.classList && e.target.classList.contains('barcode-scan') && e.which === 13) {
+                console.log("🏥 SurgiShopERPNext: NUCLEAR barcode input keypress DISABLED");
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            }
+        }, true);
+        
+        // Override any barcode scanning events
+        document.addEventListener('barcode_scan', function(e) {
+            console.log("🏥 SurgiShopERPNext: NUCLEAR barcode_scan event DISABLED");
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        }, true);
+        
+        console.log("🏥 SurgiShopERPNext: NUCLEAR DOM event overrides installed");
+    }
+    
+    // Override barcode scanning at the jQuery level
+    if (typeof $ !== 'undefined') {
+        // Override any barcode scanning events
+        $(document).off('barcode_scan').on('barcode_scan', function(e, barcode) {
+            console.log("🏥 SurgiShopERPNext: NUCLEAR jQuery barcode_scan event DISABLED");
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        });
+        
+        // Override barcode input events
+        $(document).off('keypress', '.barcode-scan').on('keypress', '.barcode-scan', function(e) {
+            if (e.which === 13) { // Enter key
+                console.log("🏥 SurgiShopERPNext: NUCLEAR jQuery barcode input DISABLED");
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            }
+        });
+        
+        console.log("🏥 SurgiShopERPNext: NUCLEAR jQuery event overrides installed");
+    }
+    
+    // Override barcode scanning at the form level
+    if (typeof frappe !== 'undefined' && frappe.ui && frappe.ui.form) {
+        // Override Form.prototype.scan_barcode
+        if (frappe.ui.form.Form && frappe.ui.form.Form.prototype) {
+            frappe.ui.form.Form.prototype.scan_barcode = function(barcode) {
+                console.log("🏥 SurgiShopERPNext: NUCLEAR Form.prototype.scan_barcode DISABLED");
+                // Do nothing - completely disable form barcode scanning
+                return Promise.resolve(null);
+            };
+            console.log("🏥 SurgiShopERPNext: NUCLEAR Form.prototype.scan_barcode DISABLED");
+        }
+        
+        // Override any barcode scanning in forms
+        if (frappe.ui.form.Form && frappe.ui.form.Form.prototype) {
+            const originalRefresh = frappe.ui.form.Form.prototype.refresh;
+            frappe.ui.form.Form.prototype.refresh = function() {
+                // Call original refresh first
+                if (originalRefresh) {
+                    originalRefresh.call(this);
+                }
+                
+                // Then disable any barcode scanning
+                if (this.scan_barcode) {
+                    this.scan_barcode = function(barcode) {
+                        console.log("🏥 SurgiShopERPNext: NUCLEAR Form scan_barcode DISABLED");
+                        return Promise.resolve(null);
+                    };
+                }
+            };
+            console.log("🏥 SurgiShopERPNext: NUCLEAR Form refresh override installed");
+        }
+        
+        // Override frappe.ui.scan_barcode
+        frappe.ui.scan_barcode = function(barcode) {
+            console.log("🏥 SurgiShopERPNext: NUCLEAR frappe.ui.scan_barcode DISABLED");
+            // Do nothing
+        };
+        
+        // Override form barcode scanning
+        if (frappe.ui.form) {
+            frappe.ui.form.scan_barcode = function(barcode) {
+                console.log("🏥 SurgiShopERPNext: NUCLEAR frappe.ui.form.scan_barcode DISABLED");
+                // Do nothing
+            };
+        }
+        
+        console.log("🏥 SurgiShopERPNext: NUCLEAR frappe barcode scanning DISABLED");
+    }
     
     // Note: Removed XMLHttpRequest and fetch overrides as they can break page loading
     // Focus on targeted barcode scanner overrides instead
