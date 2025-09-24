@@ -33,7 +33,16 @@ app_license = "mit"
 # include js in page
 # page_js = {"page" : "public/js/file.js"}
 
-# No JavaScript files needed for expired product functionality
+# Load custom barcode scanner for specific doctypes
+doctype_js = {
+	"Stock Entry": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.1",
+	"Purchase Order": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.1",
+	"Purchase Receipt": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.1",
+	"Purchase Invoice": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.1",
+	"Sales Invoice": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.1",
+	"Delivery Note": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.1",
+	"Stock Reconciliation": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.1"
+}
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "surgishoperpnext/public/scss/website"

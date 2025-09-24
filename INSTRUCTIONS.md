@@ -17,15 +17,25 @@ SurgiShopERPNext is a specialized Frappe/ERPNext app designed to allow expired p
 - **Research Capabilities**: Batch expiry override for research purposes
 - **Comprehensive Logging**: Detailed logging for debugging and monitoring
 
+### 🔍 Custom Barcode Scanning
+- **Custom Override**: Overrides ERPNext's default barcode scanning with custom implementation
+- **Enhanced Functionality**: Custom barcode processing with detailed logging
+- **API Integration**: Custom API endpoints for barcode scanning
+- **Form Integration**: Seamless integration with ERPNext forms
+
 ## Project Structure
 
 ```
 surgishoperpnext/
 ├── hooks.py                          # Main Frappe app configuration
 ├── surgishoperpnext/
+│   ├── api/
+│   │   └── barcode.py                # Custom barcode scanning API
 │   ├── overrides/
 │   │   └── stock_controller.py       # Batch expiry override logic
 │   └── patches/                      # Database migration patches
+├── public/js/
+│   └── custom-barcode-scanner.js     # Custom barcode scanner override
 └── templates/
     └── pages/
 ```
@@ -40,6 +50,39 @@ The batch expiry override functionality is applied to these doctypes:
 - **Stock Reconciliation** - Stock reconciliation
 - **Sales Invoice** - Sales invoice processing
 - **Delivery Note** - Delivery note processing
+
+## Custom Barcode Scanning
+
+### Override Implementation
+- **Custom BarcodeScanner**: Overrides ERPNext's default `erpnext.utils.BarcodeScanner` class
+- **Custom API**: Uses `surgishoperpnext.surgishoperpnext.api.barcode.scan_barcode` instead of default
+- **Enhanced Logging**: Detailed logging for debugging and monitoring
+- **Form Integration**: Seamless integration with ERPNext transaction forms
+
+### How It Works
+
+1. **JavaScript Override**: Custom `BarcodeScanner` class replaces ERPNext's default
+2. **API Call**: Calls custom barcode scanning API with enhanced functionality
+3. **Form Update**: Updates form with scanned item details
+4. **Logging**: Comprehensive logging for debugging
+
+### API Endpoints
+
+#### `scan_barcode(search_value, ctx)`
+- **Purpose**: Main barcode scanning function
+- **Input**: Barcode value and context
+- **Output**: Item details including code, name, UOM, rate, etc.
+- **Search Order**: Item Barcode → Serial No → Batch No → Warehouse
+
+#### `get_item_by_barcode(barcode)`
+- **Purpose**: Simple barcode lookup
+- **Input**: Barcode string
+- **Output**: Item details
+
+#### `validate_barcode(barcode)`
+- **Purpose**: Validate if barcode exists
+- **Input**: Barcode string
+- **Output**: Boolean validation result
 
 ## Batch Expiry Override
 
@@ -66,6 +109,13 @@ The override works by:
 
 ### hooks.py Configuration
 ```python
+# Custom barcode scanner loading for specific doctypes
+doctype_js = {
+    "Stock Entry": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.1",
+    "Purchase Order": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.1",
+    # ... other doctypes
+}
+
 # Document event hooks for batch expiry override
 doc_events = {
     "Purchase Receipt": {
@@ -166,7 +216,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.1.0
+- **Current Version**: 0.2.0
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
