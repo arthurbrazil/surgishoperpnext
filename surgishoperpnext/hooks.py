@@ -26,12 +26,30 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"
-app_include_js = [
-	"/assets/surgishoperpnext/js/bark.js?v=1.0.7",
-	"/assets/surgishoperpnext/js/surgishoperpnext-v2.js?v=1.0.2",
-	"/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.7",
-	"/assets/surgishoperpnext/js/barcode-override.js?v=1.0.11"
-]
+# app_include_js = [
+# 	"/assets/surgishoperpnext/js/bark.js?v=1.0.7",
+# 	"/assets/surgishoperpnext/js/surgishoperpnext-v2.js?v=1.0.2",
+# 	"/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.7",
+# 	"/assets/surgishoperpnext/js/barcode-override.js?v=1.0.11"
+# ]
+
+# include js, css files in header of web template
+# web_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"
+# web_include_js = "/assets/surgishoperpnext/js/surgishoperpnext.js"
+
+# include js in page
+# page_js = {"page" : "public/js/file.js"}
+
+# include js in doctype views - Load barcode scanning only for specific doctypes
+doctype_js = {
+	"Stock Entry": "/assets/surgishoperpnext/js/bark.js?v=1.0.7,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.7,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.11,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.1",
+	"Purchase Order": "/assets/surgishoperpnext/js/bark.js?v=1.0.7,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.7,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.11,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.1",
+	"Purchase Receipt": "/assets/surgishoperpnext/js/bark.js?v=1.0.7,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.7,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.11,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.1",
+	"Purchase Invoice": "/assets/surgishoperpnext/js/bark.js?v=1.0.7,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.7,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.11,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.1",
+	"Sales Invoice": "/assets/surgishoperpnext/js/bark.js?v=1.0.7,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.7,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.11,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.1",
+	"Delivery Note": "/assets/surgishoperpnext/js/bark.js?v=1.0.7,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.7,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.11,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.1",
+	"Stock Reconciliation": "/assets/surgishoperpnext/js/bark.js?v=1.0.7,/assets/surgishoperpnext/js/gs1-barcode-scanner.js?v=1.0.7,/assets/surgishoperpnext/js/barcode-override.js?v=1.0.11,/assets/surgishoperpnext/js/surgishoperpnext-init.js?v=1.0.1"
+}
 
 # include js, css files in header of web template
 # web_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"

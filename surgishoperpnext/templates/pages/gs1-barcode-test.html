@@ -189,13 +189,32 @@ document.getElementById('test-barcode').addEventListener('keypress', function(e)
 addDebugInfo('GS1 Barcode Test Page loaded');
 addDebugInfo('Waiting for GS1 Scanner initialization...');
 
-// Check if scanner is ready
-setInterval(function() {
-    if (window.surgiShopGS1Scanner) {
-        addDebugInfo('GS1 Scanner is ready');
-        clearInterval(this);
+    // Check if scanner is ready
+    setInterval(function() {
+        if (window.surgiShopGS1Scanner) {
+            addDebugInfo('GS1 Scanner is ready');
+            clearInterval(this);
+        }
+    }, 1000);
+    
+    // Also check if we're in a supported doctype for testing
+    const supportedDoctypes = [
+        'Stock Entry', 'Purchase Order', 'Purchase Receipt', 
+        'Purchase Invoice', 'Sales Invoice', 'Delivery Note', 
+        'Stock Reconciliation'
+    ];
+    
+    let currentDoctype = null;
+    if (frappe.get_cur_frm && frappe.get_cur_frm()) {
+        currentDoctype = frappe.get_cur_frm().doctype;
     }
-}, 1000);
+    
+    if (currentDoctype && supportedDoctypes.includes(currentDoctype)) {
+        addDebugInfo('Current doctype is supported for barcode scanning: ' + currentDoctype);
+    } else {
+        addDebugInfo('Current doctype is not supported for barcode scanning: ' + currentDoctype);
+        addDebugInfo('Supported doctypes: ' + supportedDoctypes.join(', '));
+    }
 </script>
 
 <style>

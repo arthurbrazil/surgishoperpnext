@@ -5,15 +5,8 @@
 
 console.log("🏥 SurgiShopERPNext: Loading Barcode Override...");
 
-// Wait for the page to be ready
-$(document).ready(function() {
-    console.log("🏥 SurgiShopERPNext: Document ready, setting up barcode override...");
-    
-    // Wait a bit for ERPNext to fully load
-    setTimeout(function() {
-        setupBarcodeOverride();
-    }, 1000);
-});
+// Note: Initialization is now handled by surgishoperpnext-init.js
+// This file only defines the setupBarcodeOverride function and related utilities
 
 function setupBarcodeOverride() {
     console.log("🏥 SurgiShopERPNext: Setting up barcode override...");

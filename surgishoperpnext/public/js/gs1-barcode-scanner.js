@@ -478,11 +478,8 @@ class SurgiShopGS1BarcodeScanner {
     }
 }
 
-// Initialize the scanner when document is ready
-$(document).ready(function() {
-    console.log("🏥 SurgiShopERPNext: Document ready, initializing GS1 Barcode Scanner...");
-    window.surgiShopGS1Scanner = new SurgiShopGS1BarcodeScanner();
-});
+// Note: Initialization is now handled by surgishoperpnext-init.js
+// This file only defines the SurgiShopGS1BarcodeScanner class
 
 // Note: Scanner is already initialized via document.ready above
 // No need for frappe.ready since the scanner works independently
