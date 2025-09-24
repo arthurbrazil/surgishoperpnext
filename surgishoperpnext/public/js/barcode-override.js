@@ -14,6 +14,31 @@ console.log("🏥 SurgiShopERPNext: Loading Barcode Override...");
     
     console.log("🏥 SurgiShopERPNext: Setting up immediate barcode override...");
     
+    // Completely disable ERPNext's barcode scanner by overriding it before it loads
+    if (typeof window !== 'undefined') {
+        // Override the barcode scanning at the earliest possible moment
+        window.erpnext = window.erpnext || {};
+        window.erpnext.utils = window.erpnext.utils || {};
+        
+        // Create a dummy BarcodeScanner that does nothing
+        window.erpnext.utils.BarcodeScanner = class {
+            constructor(opts) {
+                console.log("🏥 SurgiShopERPNext: DUMMY BarcodeScanner created - ERPNext barcode scanning DISABLED");
+                this.frm = opts?.frm;
+            }
+            
+            scan_api_call(input, callback) {
+                console.log("🏥 SurgiShopERPNext: DUMMY BarcodeScanner scan_api_call - ERPNext barcode scanning DISABLED");
+                // Do nothing - just call callback with null
+                if (callback) {
+                    callback({ message: null });
+                }
+            }
+        };
+        
+        console.log("🏥 SurgiShopERPNext: DUMMY BarcodeScanner installed - ERPNext barcode scanning DISABLED");
+    }
+    
     // Override the barcode scanning at the earliest possible moment
     if (typeof frappe !== 'undefined') {
         // Override frappe.call immediately
@@ -173,6 +198,47 @@ console.log("🏥 SurgiShopERPNext: Loading Barcode Override...");
             };
             
             console.log("🏥 SurgiShopERPNext: IMMEDIATE BarcodeScanner override installed");
+        }
+    }
+    
+    // Also override any existing BarcodeScanner instances
+    if (typeof window !== 'undefined') {
+        // Override the global BarcodeScanner if it exists
+        if (window.erpnext && window.erpnext.utils && window.erpnext.utils.BarcodeScanner) {
+            console.log("🏥 SurgiShopERPNext: Overriding existing BarcodeScanner");
+            window.erpnext.utils.BarcodeScanner = class {
+                constructor(opts) {
+                    console.log("🏥 SurgiShopERPNext: OVERRIDE BarcodeScanner created - ERPNext barcode scanning DISABLED");
+                    this.frm = opts?.frm;
+                }
+                
+                scan_api_call(input, callback) {
+                    console.log("🏥 SurgiShopERPNext: OVERRIDE BarcodeScanner scan_api_call - ERPNext barcode scanning DISABLED");
+                    // Do nothing - just call callback with null
+                    if (callback) {
+                        callback({ message: null });
+                    }
+                }
+            };
+        }
+        
+        // Also override any barcode scanning methods that might exist
+        if (typeof frappe !== 'undefined' && frappe.ui) {
+            // Override any barcode scanning methods
+            if (frappe.ui.scan_barcode) {
+                frappe.ui.scan_barcode = function(barcode) {
+                    console.log("🏥 SurgiShopERPNext: OVERRIDE frappe.ui.scan_barcode - ERPNext barcode scanning DISABLED");
+                    // Do nothing
+                };
+            }
+            
+            // Override form barcode scanning
+            if (frappe.ui.form && frappe.ui.form.scan_barcode) {
+                frappe.ui.form.scan_barcode = function(barcode) {
+                    console.log("🏥 SurgiShopERPNext: OVERRIDE frappe.ui.form.scan_barcode - ERPNext barcode scanning DISABLED");
+                    // Do nothing
+                };
+            }
         }
     }
 })();
