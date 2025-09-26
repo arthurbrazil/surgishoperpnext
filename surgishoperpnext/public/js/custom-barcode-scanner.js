@@ -551,7 +551,10 @@ frappe.router.on('change', () => {
 					opts.frm = frm;
 
 					const scanner = new surgishop.CustomBarcodeScanner(opts);
-					scanner.process_scan();
+					scanner.process_scan().catch(err => {
+					    console.error("🏥 SurgiShopERPNext: Scan error:", err);
+					    frappe.show_alert({ message: "Barcode scan failed. Please try again.", indicator: "red" });
+					});
 				});
 			}
 		});
