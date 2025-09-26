@@ -541,7 +541,12 @@ frappe.router.on('change', () => {
 
 				// This is the definitive override.
 				// We are directly replacing the onchange event handler for the scan_barcode field.
-				frm.set_df_property("scan_barcode", "onchange", function() {
+				frm.set_df_property("scan_barcode", "onchange", function(event) {
+					// Stop the original, error-producing event handler from running.
+					if (event) {
+						event.stopImmediatePropagation();
+					}
+
 					const opts = frm.events.get_barcode_scanner_options ? frm.events.get_barcode_scanner_options(frm) : {};
 					opts.frm = frm;
 
