@@ -6,7 +6,9 @@
 console.log("🏥 SurgiShopERPNext: Loading Custom Barcode Scanner Override...");
 
 // Namespace for our custom code to avoid polluting the global scope
-var surgishop = {};
+if (typeof window.surgishop === 'undefined') {
+	window.surgishop = {};
+}
 
 /**
  * Our custom scanner class.
@@ -108,9 +110,9 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 		const data = r && r.message;
 		if (!data || Object.keys(data).length === 0 || data.error) {
 			const error_msg =
-				data && data.error
-					? data.error
-					: "Cannot find Item with this Barcode";
+				data && data.error ?
+				data.error :
+				"Cannot find Item with this Barcode";
 			this.show_alert(error_msg, "red");
 			this.clean_up();
 			this.play_fail_sound();
@@ -509,41 +511,28 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 
 /**
  * This is the main override logic.
- * It hooks into the form's lifecycle and replaces the `scan_barcode` function
- * on the form's controller with our custom implementation.
+ * It hooks into the form's onload event and REPLACES the scan_barcode function
+ * on the form's controller (frm.cscript) with our custom implementation.
+ * This is the framework-compliant way to override this functionality.
  */
 frappe.ui.form.on(['Stock Entry', 'Purchase Order', 'Purchase Receipt', 'Purchase Invoice', 'Sales Invoice', 'Delivery Note', 'Stock Reconciliation'], {
 	onload: function(frm) {
 		console.log(`🏥 SurgiShopERPNext: Form ${frm.doctype} loaded. Applying scan_barcode override.`);
 
-		// Directly override the function on the cscript object. This is our primary target.
+		// This is the correct way to override. We are replacing the function that the
+		// 'scan_barcode' field's onchange event is hardcoded to call.
 		frm.cscript.scan_barcode = function(frm_obj) {
+			// The original function might be called with the frm object as an argument, so we handle that.
+			const current_frm = frm_obj || frm; 
+			
 			// Get the options for the scanner from the form's configuration
-			const opts = frm_obj.events.get_barcode_scanner_options ? .(frm_obj) || {};
-			opts.frm = frm_obj;
+			const opts = current_frm.events.get_barcode_scanner_options ? .(current_frm) || {};
+			opts.frm = current_frm;
 
 			// Instantiate our custom scanner and run it
 			console.log("🏥 SurgiShopERPNext: Calling custom scanner instance.");
 			const scanner = new surgishop.CustomBarcodeScanner(opts);
 			scanner.process_scan();
-		}
-	},
-	
-	// Also override the setup function to ensure our logic is respected
-	setup: function(frm) {
-		const scan_field = frm.fields_dict['scan_barcode'];
-		if (scan_field) {
-			console.log(`🏥 SurgiShopERPNext: Form ${frm.doctype} setup. Overriding barcode field trigger.`);
-			
-			// This is the most important part. We find the physical input element and
-			// forcefully remove any 'change' event handlers that ERPNext or other apps
-			// may have attached. Then, we attach our own.
-			$(scan_field.input).off('change').on('change', function(e) {
-				if (!e.currentTarget.value) return;
-				console.log("🏥 SurgiShopERPNext: Barcode field change event fired!");
-				// When the field changes, call our overridden function
-				frm.cscript.scan_barcode(frm);
-			});
 		}
 	}
 });
