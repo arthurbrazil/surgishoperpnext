@@ -520,7 +520,10 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
  */
 frappe.ui.form.on(['Stock Entry', 'Purchase Order', 'Purchase Receipt', 'Purchase Invoice', 'Sales Invoice', 'Delivery Note', 'Stock Reconciliation'], {
 	setup: function(frm) {
-		console.log(`🏥 SurgiShopERPNext: Form ${frm.doctype} setup. Overriding frm.events.scan_barcode.`);
+		console.log(
+			`%c🏥 SurgiShopERPNext: Script active for Doctype: ${frm.doctype}. Barcode scanner override is in place.`,
+			'color: #4CAF50; font-weight: bold; font-size: 12px;'
+		);
 
 		// This is the correct, source-code-verified way to override.
 		// We replace the function that the 'scan_barcode' field's onchange event is hardcoded to call.
