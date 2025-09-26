@@ -545,27 +545,27 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
  * We wrap this in a router 'change' event to ensure the Frappe framework is fully
  * loaded and ready before we try to attach our form-specific hooks.
  */
-// Main override logic - attach to each doctype globally
-const doctypes_to_override = [
-    'Stock Entry', 'Purchase Order', 'Purchase Receipt', 'Purchase Invoice',
-    'Sales Invoice', 'Delivery Note', 'Stock Reconciliation'
-];
+// Main override logic using router.on('change')
+frappe.router.on('change', () => {
+    const doctypes_to_override = [
+        'Stock Entry', 'Purchase Order', 'Purchase Receipt', 'Purchase Invoice',
+        'Sales Invoice', 'Delivery Note', 'Stock Reconciliation'
+    ];
 
-doctypes_to_override.forEach(dt => {
-    frappe.ui.form.on(dt, {
-        refresh: function(frm) {
-            console.log(`%c🏥 SurgiShopERPNext: Overriding scan_barcode method for ${dt}`, 'color: #4CAF50; font-weight: bold;');
+    if (frappe.get_route() && frappe.get_route()[0] === 'Form' && doctypes_to_override.includes(frappe.get_route()[1])) {
+        frappe.ui.form.on(frappe.get_route()[1], {
+            scan_barcode: function(frm) {
+                console.log(`%c🏥 SurgiShopERPNext: Overriding scan_barcode field for ${frm.doctype}`, 'color: #4CAF50; font-weight: bold;');
 
-            frm.events.scan_barcode = function() {
                 const opts = frm.events.get_barcode_scanner_options ? frm.events.get_barcode_scanner_options(frm) : {};
                 opts.frm = frm;
 
                 const scanner = new surgishop.CustomBarcodeScanner(opts);
-                return scanner.process_scan().catch(err => {
+                scanner.process_scan().catch(err => {
                     console.error("🏥 SurgiShopERPNext: Scan error:", err);
                     frappe.show_alert({ message: "Barcode scan failed. Please try again.", indicator: "red" });
                 });
-            };
-        }
-    });
+            }
+        });
+    }
 });
