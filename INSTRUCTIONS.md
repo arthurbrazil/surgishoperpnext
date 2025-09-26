@@ -12,6 +12,8 @@ The AI agent pair-programming with this repository MUST follow these rules:
 
 2.  **Automatic Git Push**: After every file modification or creation, the agent MUST automatically stage the changes, commit them with a descriptive, conventional commit message, and push the commit to the remote repository's `development` branch.
 
+3.  **Communication of Changes**: All file modifications and code changes must be clearly communicated to the user in natural language, including explanations of what is being changed and why, before or during the process.
+
 ## Key Features
 
 ### 🔬 Research-Focused Design
@@ -224,7 +226,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.3.0
+- **Current Version**: 0.3.1
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -238,3 +240,14 @@ If manual version bumping is needed:
 ---
 
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
+
+## Changelog
+
+### Version 0.3.0 (Barcode Scanning Enhancements)
+- Implemented custom GS1 barcode parsing for raw formats without parentheses.
+- Added robust override for the scan_barcode field in transaction forms (e.g., Purchase Receipt) using frappe.ui.form.on and router events.
+- Fixed uncaught promise rejections with .catch() handling and user-friendly alerts.
+- Cleaned up duplicate console logs by adding a flag to prevent multiple handler attachments.
+- Resolved variable scoping issues in GS1 parser.
+- Enhanced logging for parsed GTIN, lot, and expiry details.
+- Overall improvements to barcode scanning reliability for research-focused inventory management, including batch creation via API.
