@@ -1,5 +1,11 @@
-// This is a diagnostic script to confirm file loading.
-console.log(
-	`%c🏥 SurgiShopERPNext: custom-barcode-scanner.js HAS BEEN LOADED for Doctype: ${cur_frm.doctype}.`,
-	'color: #FF5722; font-weight: bold; font-size: 14px;'
-);
+/**
+ * SurgiShopERPNext - Custom Barcode Scanner Override
+ * Overrides ERPNext's default barcode scanning with custom functionality
+ */
+
+console.log(`%c🏥 SurgiShopERPNext: Global JS file loaded.`, 'color: #1E88E5; font-weight: bold;');
+
+// Namespace for our custom code to avoid polluting the global scope
+if (typeof window.surgishop === 'undefined') {
+	window.surgishop = {};
+}
