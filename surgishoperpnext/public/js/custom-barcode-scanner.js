@@ -50,24 +50,52 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 	 * @returns {object|null} Parsed data or null if not a valid GS1 string
 	 */
 	parse_gs1_string(gs1_string) {
-		// Simple check to see if it contains GS1 AIs
-		if (!gs1_string.includes("(01)") || !gs1_string.includes("(10)")) {
+		// Check if it looks like raw GS1 (starts with '01' and is mostly numeric)
+		if (!gs1_string.startsWith('01') || gs1_string.length < 14) {
 			return null;
 		}
 
-		const gtinMatch = gs1_string.match(/\(01\)(\d+)/);
-		const lotMatch = gs1_string.match(/\(10\)([^\(]+)/);
-		const expiryMatch = gs1_string.match(/\(17\)(\d{6})/);
+		let position = 0;
 
-		// GTIN and Lot are mandatory for this to be considered a valid GS1 scan for our purpose
-		if (!gtinMatch || !lotMatch) {
+		// Extract GTIN: '01' + 14 digits
+		if (gs1_string.substr(position, 2) === '01') {
+			position += 2;
+			const gtin = gs1_string.substr(position, 14);
+			if (!/^\d{14}$/.test(gtin)) return null;
+			position += 14;
+		} else {
 			return null;
 		}
+
+		let lot = '';
+		let expiry = '';
+
+		// Next AI could be '10' for lot (variable length, ends with FNC1 or next AI)
+		if (gs1_string.substr(position, 2) === '10') {
+			position += 2;
+			// Lot is variable, assume up to next AI or end (simplified: up to '17' or end)
+			const lotMatch = gs1_string.substr(position).match(/^(.+?)(17|$)/);
+			if (lotMatch) {
+				lot = lotMatch[1];
+				position += lot.length;
+			}
+		}
+
+		// Expiry: '17' + 6 digits (YYMMDD)
+		if (gs1_string.substr(position, 2) === '17') {
+			position += 2;
+			expiry = gs1_string.substr(position, 6);
+			if (!/^\d{6}$/.test(expiry)) return null;
+		}
+
+		if (!gtin || !lot) return null;
+
+		console.log(`🏥 SurgiShopERPNext: Parsed raw GS1 - GTIN: ${gtin}, Lot: ${lot}, Expiry: ${expiry}`);
 
 		return {
-			gtin: gtinMatch[1],
-			lot: lotMatch[1],
-			expiry: expiryMatch ? expiryMatch[1] : "",
+			gtin: gtin,
+			lot: lot,
+			expiry: expiry
 		};
 	}
 
