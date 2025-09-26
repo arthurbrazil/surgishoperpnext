@@ -76,61 +76,72 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 			"🏥 SurgiShopERPNext: OVERRIDE SUCCESS! Custom process_scan method is running."
 		);
 		return new Promise((resolve, reject) => {
-			const input = this.scan_barcode_field.value;
-			this.scan_barcode_field.set_value("");
-			if (!input) {
-				return;
-			}
+			try {
+				const input = this.scan_barcode_field.value;
+				this.scan_barcode_field.set_value("");
+				if (!input) {
+					// Resolve promise for empty input to avoid uncaught promise rejection
+					return resolve();
+				}
 
-			console.log("🏥 SurgiShopERPNext: Processing barcode scan:", input);
+				console.log("🏥 SurgiShopERPNext: Processing barcode scan:", input);
 
-			// Try to parse as GS1 first
-			const gs1_data = this.parse_gs1_string(input);
+				// Try to parse as GS1 first
+				const gs1_data = this.parse_gs1_string(input);
 
-			if (gs1_data) {
-				console.log(
-					"🏥 SurgiShopERPNext: Detected GS1 barcode. Parsed:",
-					gs1_data
-				);
-				this.gs1_api_call(gs1_data, (r) =>
-					this.handle_api_response(r, resolve, reject)
-				);
-			} else {
-				console.log(
-					"🏥 SurgiShopERPNext: Not a GS1 barcode, using standard scan."
-				);
-				this.scan_api_call(input, (r) =>
-					this.handle_api_response(r, resolve, reject)
-				);
+				if (gs1_data) {
+					console.log(
+						"🏥 SurgiShopERPNext: Detected GS1 barcode. Parsed:",
+						gs1_data
+					);
+					this.gs1_api_call(gs1_data, (r) =>
+						this.handle_api_response(r, resolve, reject)
+					);
+				} else {
+					console.log(
+						"🏥 SurgiShopERPNext: Not a GS1 barcode, using standard scan."
+					);
+					this.scan_api_call(input, (r) =>
+						this.handle_api_response(r, resolve, reject)
+					);
+				}
+			} catch (e) {
+				console.error("🏥 SurgiShopERPNext: FATAL ERROR in process_scan:", e);
+				reject(e);
 			}
 		});
 	}
 
 	handle_api_response(r, resolve, reject) {
-		const data = r && r.message;
-		if (!data || Object.keys(data).length === 0 || data.error) {
-			const error_msg =
-				data && data.error ?
-				data.error :
-				"Cannot find Item with this Barcode";
-			this.show_alert(error_msg, "red");
-			this.clean_up();
-			this.play_fail_sound();
-			reject();
-			return;
-		}
-
-		console.log("🏥 SurgiShopERPNext: Barcode scan result:", data);
-
-		this.update_table(data)
-			.then((row) => {
-				this.play_success_sound();
-				resolve(row);
-			})
-			.catch(() => {
+		try {
+			const data = r && r.message;
+			if (!data || Object.keys(data).length === 0 || data.error) {
+				const error_msg =
+					data && data.error ?
+					data.error :
+					"Cannot find Item with this Barcode";
+				this.show_alert(error_msg, "red");
+				this.clean_up();
 				this.play_fail_sound();
 				reject();
-			});
+				return;
+			}
+
+			console.log("🏥 SurgiShopERPNext: Barcode scan result:", data);
+
+			this.update_table(data)
+				.then((row) => {
+					this.play_success_sound();
+					resolve(row);
+				})
+				.catch(() => {
+					this.play_fail_sound();
+					reject();
+				});
+		} catch (e) {
+			console.error("🏥 SurgiShopERPNext: FATAL ERROR in handle_api_response:", e);
+			reject(e);
+		}
 	}
 
 	gs1_api_call(gs1_data, callback) {
