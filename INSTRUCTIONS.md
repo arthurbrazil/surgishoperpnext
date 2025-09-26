@@ -4,6 +4,14 @@
 
 SurgiShopERPNext is a specialized Frappe/ERPNext app designed to allow expired products in transactions for research purposes. This app focuses on disabling batch expiry validation to enable processing of expired items in medical/surgical inventory management.
 
+## AI Agent Development Rules
+
+The AI agent pair-programming with this repository MUST follow these rules:
+
+1.  **Automatic Cache Busting**: After every modification to a client-side asset (e.g., `.js`, `.css` files) that is referenced in `surgishoperpnext/hooks.py`, the agent MUST automatically increment the version query string for that asset. For example, `.../file.js?v=1.0.1` should become `.../file.js?v=1.0.2`.
+
+2.  **Automatic Git Push**: After every file modification or creation, the agent MUST automatically stage the changes, commit them with a descriptive, conventional commit message, and push the commit to the remote repository's `development` branch.
+
 ## Key Features
 
 ### 🔬 Research-Focused Design
