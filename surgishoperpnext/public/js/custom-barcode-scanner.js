@@ -553,19 +553,23 @@ frappe.router.on('change', () => {
     ];
 
     if (frappe.get_route() && frappe.get_route()[0] === 'Form' && doctypes_to_override.includes(frappe.get_route()[1])) {
-        frappe.ui.form.on(frappe.get_route()[1], {
-            scan_barcode: function(frm) {
-                console.log(`%c🏥 SurgiShopERPNext: Overriding scan_barcode field for ${frm.doctype}`, 'color: #4CAF50; font-weight: bold;');
+        const frm = cur_frm; // Use cur_frm for the current form
+        if (frm && !frm.custom_scanner_attached) {
+            frappe.ui.form.on(frappe.get_route()[1], {
+                scan_barcode: function(frm) {
+                    console.log(`%c🏥 SurgiShopERPNext: Overriding scan_barcode field for ${frm.doctype}`, 'color: #4CAF50; font-weight: bold;');
 
-                const opts = frm.events.get_barcode_scanner_options ? frm.events.get_barcode_scanner_options(frm) : {};
-                opts.frm = frm;
+                    const opts = frm.events.get_barcode_scanner_options ? frm.events.get_barcode_scanner_options(frm) : {};
+                    opts.frm = frm;
 
-                const scanner = new surgishop.CustomBarcodeScanner(opts);
-                scanner.process_scan().catch(err => {
-                    console.error("🏥 SurgiShopERPNext: Scan error:", err);
-                    frappe.show_alert({ message: "Barcode scan failed. Please try again.", indicator: "red" });
-                });
-            }
-        });
+                    const scanner = new surgishop.CustomBarcodeScanner(opts);
+                    scanner.process_scan().catch(err => {
+                        console.error("🏥 SurgiShopERPNext: Scan error:", err);
+                        frappe.show_alert({ message: "Barcode scan failed. Please try again.", indicator: "red" });
+                    });
+                }
+            });
+            frm.custom_scanner_attached = true;
+        }
     }
 });
