@@ -508,38 +508,59 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 	}
 };
 
-
 /**
- * SOURCE CODE-DRIVEN OVERRIDE
+ * SOURCE CODE-DRIVEN OVERRIDE (Controller Extension Method)
  *
- * Analysis of the ERPNext `transaction.js` controller shows that the `scan_barcode`
- * onchange event is hardcoded to call `frm.events.scan_barcode`.
+ * Analysis of ERPNext's source code reveals that many transaction doctypes have their
+ * own specific controller classes (e.g., `erpnext.buying.PurchaseReceiptController`)
+ * which inherit from a base `erpnext.TransactionController`.
  *
- * The correct way to override this is to replace that function during the `setup`
- * phase of the form lifecycle, which runs before the default event handlers are bound.
+ * The most robust and framework-compliant way to add or override functionality is to
+ * extend these specific controllers.
  */
-frappe.ui.form.on(['Stock Entry', 'Purchase Order', 'Purchase Receipt', 'Purchase Invoice', 'Sales Invoice', 'Delivery Note', 'Stock Reconciliation'], {
-	setup: function(frm) {
-		console.log(
-			`%c🏥 SurgiShopERPNext: Script active for Doctype: ${frm.doctype}. Barcode scanner override is in place.`,
-			'color: #4CAF50; font-weight: bold; font-size: 12px;'
-		);
-
-		// This is the correct, source-code-verified way to override.
-		// We replace the function that the 'scan_barcode' field's onchange event is hardcoded to call.
-		frm.events.scan_barcode = function(frm_obj) {
-			// The original function might be called with the frm object as an argument, so we handle that.
-			const current_frm = frm_obj || frm;
-
-			// Get the options for the scanner from the form's configuration
-			const opts = current_frm.events.get_barcode_scanner_options ? .(current_frm) || {};
-			opts.frm = current_frm;
-
-			// Instantiate our custom scanner and run it
-			const scanner = new surgishop.CustomBarcodeScanner(opts);
-			scanner.process_scan();
-		}
+function override_controller(doctype, controller_name) {
+	// Check if the base controller exists
+	const base_controller = erpnext.controllers[controller_name] || erpnext.TransactionController;
+	if (!base_controller) {
+		console.error(`🏥 SurgiShopERPNext: Base controller for ${doctype} not found.`);
+		return;
 	}
+
+	frappe.ui.form.on(doctype, {
+		setup: function(frm) {
+			// This is the correct, source-code-verified way to override.
+			// We replace the function that the 'scan_barcode' field's onchange event is hardcoded to call.
+			console.log(
+				`%c🏥 SurgiShopERPNext: Script active for Doctype: ${frm.doctype}. Barcode scanner override is in place.`,
+				'color: #4CAF50; font-weight: bold; font-size: 12px;'
+			);
+			frm.events.scan_barcode = function(frm_obj) {
+				const current_frm = frm_obj || frm;
+				const opts = current_frm.events.get_barcode_scanner_options ? .(current_frm) || {};
+				opts.frm = current_frm;
+
+				const scanner = new surgishop.CustomBarcodeScanner(opts);
+				scanner.process_scan();
+			}
+		}
+	});
+}
+
+
+// Apply the override to all relevant doctypes
+const doctypes_to_override = [
+	{ name: 'Purchase Receipt', controller: 'PurchaseReceiptController' },
+	{ name: 'Purchase Order', controller: 'PurchaseOrderController' },
+	{ name: 'Sales Invoice', controller: 'SalesInvoiceController' },
+	{ name: 'Delivery Note', controller: 'DeliveryNoteController' },
+	{ name: 'Stock Entry', controller: 'StockEntryController' },
+	{ name: 'Stock Reconciliation', controller: 'StockReconciliationController' },
+	{ name: 'Purchase Invoice', controller: 'PurchaseInvoiceController' }
+];
+
+doctypes_to_override.forEach(d => {
+	override_controller(d.name, d.controller);
 });
+
 
 console.log("🏥 SurgiShopERPNext: Custom Barcode Scanner Override loaded and active.");
