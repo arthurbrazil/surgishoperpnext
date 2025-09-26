@@ -528,22 +528,15 @@ frappe.router.on('change', () => {
 					'color: #4CAF50; font-weight: bold; font-size: 12px;'
 				);
 
-				// Replace the function that the 'scan_barcode' field's onchange event is hardcoded to call.
-				frm.events.scan_barcode = function(frm_obj) {
-					const current_frm = frm_obj || frm;
+				// This is the definitive override.
+				// We are directly replacing the onchange event handler for the scan_barcode field.
+				frm.set_df_property("scan_barcode", "onchange", function() {
+					const opts = frm.events.get_barcode_scanner_options ? frm.events.get_barcode_scanner_options(frm) : {};
+					opts.frm = frm;
 
-					// Get the options for the scanner from the form's configuration
-					// Safely check if get_barcode_scanner_options exists before calling it.
-					let opts = {};
-					if (current_frm.events && current_frm.events.get_barcode_scanner_options) {
-						opts = current_frm.events.get_barcode_scanner_options(current_frm) || {};
-					}
-					opts.frm = current_frm;
-
-					// Instantiate our custom scanner and run it
 					const scanner = new surgishop.CustomBarcodeScanner(opts);
 					scanner.process_scan();
-				}
+				});
 			}
 		});
 	}
