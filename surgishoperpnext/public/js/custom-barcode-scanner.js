@@ -516,13 +516,14 @@ frappe.ui.form.on(['Stock Entry', 'Purchase Order', 'Purchase Receipt', 'Purchas
 	onload: function(frm) {
 		console.log(`🏥 SurgiShopERPNext: Form ${frm.doctype} loaded. Applying scan_barcode override.`);
 
-		// Directly override the function that the "Scan Barcode" field calls
-		frm.cscript.scan_barcode = function(frm) {
+		// Directly override the function on the cscript object. This is our primary target.
+		frm.cscript.scan_barcode = function(frm_obj) {
 			// Get the options for the scanner from the form's configuration
-			const opts = frm.events.get_barcode_scanner_options ? .(frm) || {};
-			opts.frm = frm;
+			const opts = frm_obj.events.get_barcode_scanner_options ? .(frm_obj) || {};
+			opts.frm = frm_obj;
 
 			// Instantiate our custom scanner and run it
+			console.log("🏥 SurgiShopERPNext: Calling custom scanner instance.");
 			const scanner = new surgishop.CustomBarcodeScanner(opts);
 			scanner.process_scan();
 		}
@@ -530,11 +531,16 @@ frappe.ui.form.on(['Stock Entry', 'Purchase Order', 'Purchase Receipt', 'Purchas
 	
 	// Also override the setup function to ensure our logic is respected
 	setup: function(frm) {
-		if (frm.fields_dict['scan_barcode']) {
+		const scan_field = frm.fields_dict['scan_barcode'];
+		if (scan_field) {
 			console.log(`🏥 SurgiShopERPNext: Form ${frm.doctype} setup. Overriding barcode field trigger.`);
-			// The default setup adds a trigger that we need to replace
-			frm.set_df_property('scan_barcode', 'onchange', function(e) {
+			
+			// This is the most important part. We find the physical input element and
+			// forcefully remove any 'change' event handlers that ERPNext or other apps
+			// may have attached. Then, we attach our own.
+			$(scan_field.input).off('change').on('change', function(e) {
 				if (!e.currentTarget.value) return;
+				console.log("🏥 SurgiShopERPNext: Barcode field change event fired!");
 				// When the field changes, call our overridden function
 				frm.cscript.scan_barcode(frm);
 			});
