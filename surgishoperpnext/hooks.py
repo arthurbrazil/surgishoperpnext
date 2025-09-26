@@ -148,39 +148,28 @@ app_include_js = "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.2.0"
 
 # Document Events
 # ---------------
-# Hook on document methods and events
+# Hook on document methods and events for batch expiry override
 
+# List of doctypes to apply overrides to
+transaction_doctypes = [
+    "Purchase Receipt",
+    "Purchase Invoice",
+    "Stock Entry",
+    "Stock Reconciliation",
+    "Sales Invoice",
+    "Delivery Note"
+]
+
+# Common events and their override functions
+override_events = {
+    "before_validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.disable_batch_expiry_validation",
+    "after_insert": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation",
+    "on_cancel": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation"
+}
+
+# Dynamically build doc_events dict
 doc_events = {
-	"Purchase Receipt": {
-		"before_validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.disable_batch_expiry_validation",
-		"after_insert": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation",
-		"on_cancel": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation"
-	},
-	"Purchase Invoice": {
-		"before_validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.disable_batch_expiry_validation",
-		"after_insert": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation",
-		"on_cancel": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation"
-	},
-	"Stock Entry": {
-		"before_validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.disable_batch_expiry_validation",
-		"after_insert": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation",
-		"on_cancel": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation"
-	},
-	"Stock Reconciliation": {
-		"before_validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.disable_batch_expiry_validation",
-		"after_insert": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation",
-		"on_cancel": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation"
-	},
-	"Sales Invoice": {
-		"before_validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.disable_batch_expiry_validation",
-		"after_insert": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation",
-		"on_cancel": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation"
-	},
-	"Delivery Note": {
-		"before_validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.disable_batch_expiry_validation",
-		"after_insert": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation",
-		"on_cancel": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.restore_batch_expiry_validation"
-	}
+    doctype: override_events.copy() for doctype in transaction_doctypes
 }
 
 # Scheduled Tasks
