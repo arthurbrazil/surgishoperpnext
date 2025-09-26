@@ -510,27 +510,29 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 
 
 /**
- * This is the main override logic.
- * It hooks into the form's onload event and REPLACES the scan_barcode function
- * on the form's controller (frm.cscript) with our custom implementation.
- * This is the framework-compliant way to override this functionality.
+ * SOURCE CODE-DRIVEN OVERRIDE
+ *
+ * Analysis of the ERPNext `transaction.js` controller shows that the `scan_barcode`
+ * onchange event is hardcoded to call `frm.events.scan_barcode`.
+ *
+ * The correct way to override this is to replace that function during the `setup`
+ * phase of the form lifecycle, which runs before the default event handlers are bound.
  */
 frappe.ui.form.on(['Stock Entry', 'Purchase Order', 'Purchase Receipt', 'Purchase Invoice', 'Sales Invoice', 'Delivery Note', 'Stock Reconciliation'], {
-	onload: function(frm) {
-		console.log(`🏥 SurgiShopERPNext: Form ${frm.doctype} loaded. Applying scan_barcode override.`);
+	setup: function(frm) {
+		console.log(`🏥 SurgiShopERPNext: Form ${frm.doctype} setup. Overriding frm.events.scan_barcode.`);
 
-		// This is the correct way to override. We are replacing the function that the
-		// 'scan_barcode' field's onchange event is hardcoded to call.
-		frm.cscript.scan_barcode = function(frm_obj) {
+		// This is the correct, source-code-verified way to override.
+		// We replace the function that the 'scan_barcode' field's onchange event is hardcoded to call.
+		frm.events.scan_barcode = function(frm_obj) {
 			// The original function might be called with the frm object as an argument, so we handle that.
-			const current_frm = frm_obj || frm; 
-			
+			const current_frm = frm_obj || frm;
+
 			// Get the options for the scanner from the form's configuration
 			const opts = current_frm.events.get_barcode_scanner_options ? .(current_frm) || {};
 			opts.frm = current_frm;
 
 			// Instantiate our custom scanner and run it
-			console.log("🏥 SurgiShopERPNext: Calling custom scanner instance.");
 			const scanner = new surgishop.CustomBarcodeScanner(opts);
 			scanner.process_scan();
 		}

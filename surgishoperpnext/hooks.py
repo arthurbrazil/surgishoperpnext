@@ -35,13 +35,13 @@ app_license = "mit"
 
 # Load custom barcode scanner for specific doctypes
 doctype_js = {
-	"Stock Entry": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.3",
-	"Purchase Order": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.3",
-	"Purchase Receipt": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.3",
-	"Purchase Invoice": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.3",
-	"Sales Invoice": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.3",
-	"Delivery Note": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.3",
-	"Stock Reconciliation": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.3"
+	"Stock Entry": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.4",
+	"Purchase Order": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.4",
+	"Purchase Receipt": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.4",
+	"Purchase Invoice": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.4",
+	"Sales Invoice": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.4",
+	"Delivery Note": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.4",
+	"Stock Reconciliation": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.4"
 }
 
 # include custom scss in every website theme (without file extension ".scss")
