@@ -207,7 +207,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 				barcode,
 				default_warehouse
 			);
-			const is_new_row = !row ? .item_code;
+			const is_new_row = row && row.item_code ? false : true;
 
 			if (!row) {
 				if (this.dont_allow_new_row) {
@@ -424,12 +424,11 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 	}
 
 	is_duplicate_serial_no(row, serial_no) {
-		const is_duplicate = row[this.serial_no_field] ? .includes(serial_no);
-
-		if (is_duplicate) {
+		if (row && row[this.serial_no_field] && row[this.serial_no_field].includes(serial_no)) {
 			this.show_alert(`Serial No ${serial_no} is already added`, "orange");
+			return true;
 		}
-		return is_duplicate;
+		return false;
 	}
 
 	get_row_to_modify_on_scan(
@@ -536,7 +535,7 @@ frappe.router.on('change', () => {
 					// Get the options for the scanner from the form's configuration
 					// Safely check if get_barcode_scanner_options exists before calling it.
 					let opts = {};
-					if (current_frm.events.get_barcode_scanner_options) {
+					if (current_frm.events && current_frm.events.get_barcode_scanner_options) {
 						opts = current_frm.events.get_barcode_scanner_options(current_frm) || {};
 					}
 					opts.frm = current_frm;
