@@ -50,30 +50,28 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 	 * @returns {object|null} Parsed data or null if not a valid GS1 string
 	 */
 	parse_gs1_string(gs1_string) {
-		// Check if it looks like raw GS1 (starts with '01' and is mostly numeric)
 		if (!gs1_string.startsWith('01') || gs1_string.length < 14) {
 			return null;
 		}
 
 		let position = 0;
+		let gtin = '';
+		let lot = '';
+		let expiry = '';
 
-		// Extract GTIN: '01' + 14 digits
+		// Extract GTIN
 		if (gs1_string.substr(position, 2) === '01') {
 			position += 2;
-			const gtin = gs1_string.substr(position, 14);
+			gtin = gs1_string.substr(position, 14);
 			if (!/^\d{14}$/.test(gtin)) return null;
 			position += 14;
 		} else {
 			return null;
 		}
 
-		let lot = '';
-		let expiry = '';
-
-		// Next AI could be '10' for lot (variable length, ends with FNC1 or next AI)
+		// Extract Lot
 		if (gs1_string.substr(position, 2) === '10') {
 			position += 2;
-			// Lot is variable, assume up to next AI or end (simplified: up to '17' or end)
 			const lotMatch = gs1_string.substr(position).match(/^(.+?)(17|$)/);
 			if (lotMatch) {
 				lot = lotMatch[1];
@@ -81,7 +79,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 			}
 		}
 
-		// Expiry: '17' + 6 digits (YYMMDD)
+		// Extract Expiry
 		if (gs1_string.substr(position, 2) === '17') {
 			position += 2;
 			expiry = gs1_string.substr(position, 6);
@@ -92,11 +90,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 
 		console.log(`🏥 SurgiShopERPNext: Parsed raw GS1 - GTIN: ${gtin}, Lot: ${lot}, Expiry: ${expiry}`);
 
-		return {
-			gtin: gtin,
-			lot: lot,
-			expiry: expiry
-		};
+		return { gtin, lot, expiry };
 	}
 
 	process_scan() {
@@ -551,28 +545,27 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
  * We wrap this in a router 'change' event to ensure the Frappe framework is fully
  * loaded and ready before we try to attach our form-specific hooks.
  */
-frappe.router.on('change', () => {
-	const doctypes_to_override = [
-		'Stock Entry', 'Purchase Order', 'Purchase Receipt', 'Purchase Invoice',
-		'Sales Invoice', 'Delivery Note', 'Stock Reconciliation'
-	];
+// Main override logic - attach to each doctype globally
+const doctypes_to_override = [
+    'Stock Entry', 'Purchase Order', 'Purchase Receipt', 'Purchase Invoice',
+    'Sales Invoice', 'Delivery Note', 'Stock Reconciliation'
+];
 
-	// Check if the current view is a form for one of our target doctypes
-	if (frappe.get_route() && frappe.get_route()[0] === 'Form' && doctypes_to_override.includes(frappe.get_route()[1])) {
-		// It is, so attach our setup hook specifically for this doctype
-		frappe.ui.form.on(frappe.get_route()[1], {
-			scan_barcode: function(frm) {
-				console.log(`%c🏥 SurgiShopERPNext: Overriding scan_barcode field for ${frm.doctype}`, 'color: #4CAF50; font-weight: bold;');
+doctypes_to_override.forEach(dt => {
+    frappe.ui.form.on(dt, {
+        refresh: function(frm) {
+            console.log(`%c🏥 SurgiShopERPNext: Overriding scan_barcode method for ${dt}`, 'color: #4CAF50; font-weight: bold;');
 
-				const opts = frm.events.get_barcode_scanner_options ? frm.events.get_barcode_scanner_options(frm) : {};
-				opts.frm = frm;
+            frm.events.scan_barcode = function() {
+                const opts = frm.events.get_barcode_scanner_options ? frm.events.get_barcode_scanner_options(frm) : {};
+                opts.frm = frm;
 
-				const scanner = new surgishop.CustomBarcodeScanner(opts);
-				scanner.process_scan().catch(err => {
-					console.error("🏥 SurgiShopERPNext: Scan error:", err);
-					frappe.show_alert({ message: "Barcode scan failed. Please try again.", indicator: "red" });
-				});
-			}
-		});
-	}
+                const scanner = new surgishop.CustomBarcodeScanner(opts);
+                return scanner.process_scan().catch(err => {
+                    console.error("🏥 SurgiShopERPNext: Scan error:", err);
+                    frappe.show_alert({ message: "Barcode scan failed. Please try again.", indicator: "red" });
+                });
+            };
+        }
+    });
 });
