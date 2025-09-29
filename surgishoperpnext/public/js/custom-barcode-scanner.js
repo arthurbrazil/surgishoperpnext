@@ -147,7 +147,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 				this.show_alert(error_msg, "red");
 				this.clean_up();
 				this.play_fail_sound();
-				reject();
+				reject(new Error(error_msg));  // Reject with meaningful error
 				return;
 			}
 
@@ -158,9 +158,9 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 					this.play_success_sound();
 					resolve(row);
 				})
-				.catch(() => {
+				.catch((err) => {
 					this.play_fail_sound();
-					reject();
+					reject(err);  // Propagate the error from update_table
 				});
 		} catch (e) {
 			console.error("🏥 SurgiShopERPNext: FATAL ERROR in handle_api_response:", e);
@@ -189,9 +189,9 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 				callback(r);
 			})
 			.catch((error) => {
-				console.error("🏥 SurgiShopERPNext: GS1 API error:", error);
+				console.error("🏥 SurgiShopERPNext: GS1 API call failed:", error);
 				callback({
-					message: null
+					message: { error: "GS1 API call failed. Please check connection or server logs." }
 				});
 			});
 	}
@@ -215,9 +215,9 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 				callback(r);
 			})
 			.catch((error) => {
-				console.error("🏥 SurgiShopERPNext: API error:", error);
+				console.error("🏥 SurgiShopERPNext: Standard API call failed:", error);
 				callback({
-					message: null
+					message: { error: "Barcode API call failed. Please check connection or server logs." }
 				});
 			});
 	}
