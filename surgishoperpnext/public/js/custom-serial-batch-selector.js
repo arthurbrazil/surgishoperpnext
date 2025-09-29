@@ -75,42 +75,27 @@ surgishop.CustomSerialBatchPackageSelector = class CustomSerialBatchPackageSelec
 
   // Reuse GS1 parser from custom-barcode-scanner.js
   parse_gs1_string(gs1_string) {
-    if (!gs1_string.startsWith("01") || gs1_string.length < 14) {
-      return null;
-    }
+	try {
+		const parsed = gs1BarcodeParser.parseBarcode(gs1_string);
+		if (!parsed || !parsed.parsedCodeItems) return null;
 
-    let position = 0;
-    let gtin = "";
-    let lot = "";
-    let expiry = "";
+		let gtin = '';
+		let lot = '';
+		let expiry = '';
 
-    if (gs1_string.substr(position, 2) === "01") {
-      position += 2;
-      gtin = gs1_string.substr(position, 14);
-      if (!/^\d{14}$/.test(gtin)) return null;
-      position += 14;
-    } else {
-      return null;
-    }
+		parsed.parsedCodeItems.forEach(item => {
+			if (item.ai === '01') gtin = item.data;
+			else if (item.ai === '10') lot = item.data;
+			else if (item.ai === '17') expiry = item.data;
+		});
 
-    if (gs1_string.substr(position, 2) === "10") {
-      position += 2;
-      const lotMatch = gs1_string.substr(position).match(/^(.+?)(17|$)/);
-      if (lotMatch) {
-        lot = lotMatch[1];
-        position += lot.length;
-      }
-    }
+		if (!gtin || !lot) return null;
 
-    if (gs1_string.substr(position, 2) === "17") {
-      position += 2;
-      expiry = gs1_string.substr(position, 6);
-      if (!/^\d{6}$/.test(expiry)) return null;
-    }
-
-    if (!gtin || !lot) return null;
-
-    return { gtin, lot, expiry };
+		return { gtin, lot, expiry };
+	} catch (e) {
+		console.error('🏥 GS1 parsing error in selector:', e);
+		return null;
+	}
   }
 
   // Custom method to add parsed GS1 data to bundle

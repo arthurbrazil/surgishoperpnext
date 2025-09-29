@@ -226,7 +226,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.3.4
+- **Current Version**: 0.4.0
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -242,6 +242,9 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.4.0 (GS1 Parsing Improvement)
+- Integrated gs1-barcode-parser-js library for robust GS1 barcode parsing, replacing custom logic.
 
 ### Version 0.3.0 (Barcode Scanning Enhancements)
 - Implemented custom GS1 barcode parsing for raw formats without parentheses.

@@ -50,49 +50,29 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 	 * @returns {object|null} Parsed data or null if not a valid GS1 string
 	 */
 	parse_gs1_string(gs1_string) {
-		console.log(`🏥 Parsing GS1: ${gs1_string}`);
+		try {
+			// Assuming gs1BarcodeParser is available globally
+			const parsed = gs1BarcodeParser.parseBarcode(gs1_string);
+			if (!parsed || !parsed.parsedCodeItems) return null;
 
-		// Remove any non-digit characters if present (though raw scans shouldn't have them)
-		gs1_string = gs1_string.replace(/[^0-9]/g, '');
+			let gtin = '';
+			let lot = '';
+			let expiry = '';
 
-		let position = 0;
-		let gtin = '';
-		let lot = '';
-		let expiry = '';
+			parsed.parsedCodeItems.forEach(item => {
+				if (item.ai === '01') gtin = item.data;
+				else if (item.ai === '10') lot = item.data;
+				else if (item.ai === '17') expiry = item.data;
+			});
 
-		while (position < gs1_string.length) {
-			const ai = gs1_string.substr(position, 2);
-			position += 2;
+			if (!gtin || !lot) return null;
 
-			if (ai === '01') {
-				gtin = gs1_string.substr(position, 14);
-				position += 14;
-			} else if (ai === '10') {
-				// Lot is variable length, ends with FNC1 (but in raw, it might be until next AI)
-				// For simplicity, assume it ends before next 2-digit AI
-				const nextAiMatch = gs1_string.substr(position).match(/^(.*?)(00|01|02|1[1-9]|2[0-9]|3[0-9]|4[0-3]|9[0-9]|$)/);
-				if (nextAiMatch) {
-					lot = nextAiMatch[1];
-					position += lot.length;
-				}
-			} else if (ai === '17') {
-				expiry = gs1_string.substr(position, 6);
-				position += 6;
-			} else {
-				// Unknown AI, skip variable length (this is simplistic)
-				// For now, assume 10 chars skip or something; better to improve later
-				position += 10; // Arbitrary, need better handling
-			}
-		}
-
-		if (!gtin || gtin.length !== 14 || !lot) {
-			console.log('🏥 Invalid GS1: missing required fields');
+			console.log(`🏥 Parsed with library: GTIN=${gtin}, Lot=${lot}, Expiry=${expiry}`);
+			return { gtin, lot, expiry };
+		} catch (e) {
+			console.error('🏥 GS1 parsing error:', e);
 			return null;
 		}
-
-		console.log(`🏥 Parsed: GTIN=${gtin}, Lot=${lot}, Expiry=${expiry}`);
-
-		return { gtin, lot, expiry };
 	}
 
 	process_scan() {
