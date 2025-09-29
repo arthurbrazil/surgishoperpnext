@@ -45,6 +45,19 @@ app_include_js = "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.2.0"
 # 	"Stock Reconciliation": "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.7"
 # }
 
+# Add to doctype_js
+doctype_js = {
+	"Stock Entry": [
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.1",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js"
+	],
+	"Purchase Receipt": [
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.0.1",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js"
+	],
+	# Add for other doctypes as needed
+}
+
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "surgishoperpnext/public/scss/website"
 
