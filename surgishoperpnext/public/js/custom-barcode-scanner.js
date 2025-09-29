@@ -51,26 +51,26 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 	 */
 	parse_gs1_string(gs1_string) {
 		try {
-			if (typeof gs1BarcodeParser === 'undefined') {
+			if (typeof GS1Parser === 'undefined') {
 				console.error('🏥 GS1 library not loaded');
 				return null;
 			}
-			const parsed = gs1BarcodeParser.parseBarcode(gs1_string);
-			if (!parsed || !parsed.parsedCodeItems) return null;
+			const parsed = GS1Parser.parse(gs1_string);
+			if (!parsed || !parsed.elements) return null; // Adjust based on actual API
 
 			let gtin = '';
 			let lot = '';
 			let expiry = '';
 
-			parsed.parsedCodeItems.forEach(item => {
-				if (item.ai === '01') gtin = item.data;
-				else if (item.ai === '10') lot = item.data;
-				else if (item.ai === '17') expiry = item.data;
+			parsed.elements.forEach(el => {
+				if (el.ai === '01') gtin = el.value;
+				else if (el.ai === '10') lot = el.value;
+				else if (el.ai === '17') expiry = el.value;
 			});
 
 			if (!gtin || !lot) return null;
 
-			console.log(`🏥 Parsed with library: GTIN=${gtin}, Lot=${lot}, Expiry=${expiry}`);
+			console.log(`🏥 Parsed with GS1Parser: GTIN=${gtin}, Lot=${lot}, Expiry=${expiry}`);
 			return { gtin, lot, expiry };
 		} catch (e) {
 			console.error('🏥 GS1 parsing error:', e);

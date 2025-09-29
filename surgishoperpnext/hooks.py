@@ -48,14 +48,14 @@ app_include_js = "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.3.0"
 # Add to doctype_js
 doctype_js = {
 	"Stock Entry": [
-		"/assets/surgishoperpnext/js/gs1-barcode-parser.js",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.3.1",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=1.3.1"
+		"/assets/surgishoperpnext/js/gs1-parser.min.js",
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.3.2",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=1.3.2"
 	],
 	"Purchase Receipt": [
-		"/assets/surgishoperpnext/js/gs1-barcode-parser.js",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.3.1",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=1.3.1"
+		"/assets/surgishoperpnext/js/gs1-parser.min.js",
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=1.3.2",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=1.3.2"
 	],
 	# Add for other doctypes as needed
 }

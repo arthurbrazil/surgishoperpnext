@@ -226,7 +226,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.4.1
+- **Current Version**: 0.4.2
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -243,11 +243,14 @@ If manual version bumping is needed:
 
 ## Changelog
 
+### Version 0.4.2 (GS1 Parser Correction)
+- Switched to gs1-parser library from CDN for accurate GS1 parsing.
+
 ### Version 0.4.1 (GS1 Library Fix)
-- Fixed loading of gs1-barcode-parser-js to prevent 'not defined' errors.
+- Fixed loading to prevent 'not defined' errors.
 
 ### Version 0.4.0 (GS1 Parsing Improvement)
-- Integrated gs1-barcode-parser-js library for robust GS1 barcode parsing, replacing custom logic.
+- Integrated library for robust GS1 barcode parsing.
 
 ### Version 0.3.0 (Barcode Scanning Enhancements)
 - Implemented custom GS1 barcode parsing for raw formats without parentheses.
