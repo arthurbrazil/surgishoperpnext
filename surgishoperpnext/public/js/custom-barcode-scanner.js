@@ -50,45 +50,47 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 	 * @returns {object|null} Parsed data or null if not a valid GS1 string
 	 */
 	parse_gs1_string(gs1_string) {
-		if (!gs1_string.startsWith('01') || gs1_string.length < 14) {
-			return null;
-		}
+		console.log(`🏥 Parsing GS1: ${gs1_string}`);
+
+		// Remove any non-digit characters if present (though raw scans shouldn't have them)
+		gs1_string = gs1_string.replace(/[^0-9]/g, '');
 
 		let position = 0;
 		let gtin = '';
 		let lot = '';
 		let expiry = '';
 
-		// Extract GTIN
-		if (gs1_string.substr(position, 2) === '01') {
+		while (position < gs1_string.length) {
+			const ai = gs1_string.substr(position, 2);
 			position += 2;
-			gtin = gs1_string.substr(position, 14);
-			if (!/^\d{14}$/.test(gtin)) return null;
-			position += 14;
-		} else {
-			return null;
-		}
 
-		// Extract Lot
-		if (gs1_string.substr(position, 2) === '10') {
-			position += 2;
-			const lotMatch = gs1_string.substr(position).match(/^(.+?)(17|$)/);
-			if (lotMatch) {
-				lot = lotMatch[1];
-				position += lot.length;
+			if (ai === '01') {
+				gtin = gs1_string.substr(position, 14);
+				position += 14;
+			} else if (ai === '10') {
+				// Lot is variable length, ends with FNC1 (but in raw, it might be until next AI)
+				// For simplicity, assume it ends before next 2-digit AI
+				const nextAiMatch = gs1_string.substr(position).match(/^(.*?)(00|01|02|1[1-9]|2[0-9]|3[0-9]|4[0-3]|9[0-9]|$)/);
+				if (nextAiMatch) {
+					lot = nextAiMatch[1];
+					position += lot.length;
+				}
+			} else if (ai === '17') {
+				expiry = gs1_string.substr(position, 6);
+				position += 6;
+			} else {
+				// Unknown AI, skip variable length (this is simplistic)
+				// For now, assume 10 chars skip or something; better to improve later
+				position += 10; // Arbitrary, need better handling
 			}
 		}
 
-		// Extract Expiry
-		if (gs1_string.substr(position, 2) === '17') {
-			position += 2;
-			expiry = gs1_string.substr(position, 6);
-			if (!/^\d{6}$/.test(expiry)) return null;
+		if (!gtin || gtin.length !== 14 || !lot) {
+			console.log('🏥 Invalid GS1: missing required fields');
+			return null;
 		}
 
-		if (!gtin || !lot) return null;
-
-		console.log(`🏥 SurgiShopERPNext: Parsed raw GS1 - GTIN: ${gtin}, Lot: ${lot}, Expiry: ${expiry}`);
+		console.log(`🏥 Parsed: GTIN=${gtin}, Lot=${lot}, Expiry=${expiry}`);
 
 		return { gtin, lot, expiry };
 	}
