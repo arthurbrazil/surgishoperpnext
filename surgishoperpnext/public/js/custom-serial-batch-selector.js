@@ -76,6 +76,10 @@ surgishop.CustomSerialBatchPackageSelector = class CustomSerialBatchPackageSelec
   // Reuse GS1 parser from custom-barcode-scanner.js
   parse_gs1_string(gs1_string) {
 	try {
+		if (typeof gs1BarcodeParser === 'undefined') {
+			console.error('🏥 GS1 library not loaded in selector');
+			return null;
+		}
 		const parsed = gs1BarcodeParser.parseBarcode(gs1_string);
 		if (!parsed || !parsed.parsedCodeItems) return null;
 

@@ -51,7 +51,10 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 	 */
 	parse_gs1_string(gs1_string) {
 		try {
-			// Assuming gs1BarcodeParser is available globally
+			if (typeof gs1BarcodeParser === 'undefined') {
+				console.error('🏥 GS1 library not loaded');
+				return null;
+			}
 			const parsed = gs1BarcodeParser.parseBarcode(gs1_string);
 			if (!parsed || !parsed.parsedCodeItems) return null;
 
