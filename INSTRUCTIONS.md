@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.1.1
+- **Current Version**: 0.1.2
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,25 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.1.2 (Critical Fix - GS1Parser Loading)
+**Hot Fix for GS1Parser Not Loading**
+
+#### 🐛 Critical Fix
+- **Fixed: GS1Parser not loaded in browser** - `gs1-utils.js` was not being loaded globally
+- **Loading Order Issue Resolved** - `custom-barcode-scanner.js` was loading before `gs1-utils.js` dependency
+
+#### 🔧 Configuration Changes
+- Moved `gs1-utils.js` to global `app_include_js` (was only in `doctype_js`)
+- **Load order now correct**: `gs1-utils.js` → `custom-barcode-scanner.js`
+- Ensures `window.surgishop.GS1Parser` is available when barcode scanner initializes
+
+#### ✅ Result
+- GS1 barcodes with alphanumeric lot numbers now scan correctly
+- Error `"GS1Parser not loaded! Make sure gs1-utils.js is included."` resolved
+- Barcode `012070503100301617251220103IAIDP06` now works in all forms
+
+---
 
 ### Version 0.1.1 (GS1 Parser Enhancement - bark.js Style)
 **Enhanced GS1 Barcode Parsing**
