@@ -26,7 +26,7 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"
-app_include_js = "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.0"
+app_include_js = "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.1"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"
@@ -49,15 +49,15 @@ app_include_js = "/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.0"
 doctype_js = {
 	"Stock Entry": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
-		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.0",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.0",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.0"
+		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.1",
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.1",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.1"
 	],
 	"Purchase Receipt": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
-		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.0",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.0",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.0"
+		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.1",
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.1",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.1"
 	],
 	# Add for other doctypes as needed
 }

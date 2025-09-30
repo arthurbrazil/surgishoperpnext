@@ -1,10 +1,11 @@
 /**
  * SurgiShopERPNext - GS1 Barcode Parsing Utilities
- * Shared utilities for parsing GS1 barcodes across different modules
+ * Inspired by bark.js - Properly handles GS1 Application Identifiers
+ * Supports alphanumeric lot numbers and variable-length fields
  */
 
 console.log(
-	'%c🏥 SurgiShopERPNext: GS1 Utils loaded.',
+	'%c🏥 SurgiShopERPNext: GS1 Utils loaded (bark.js style).',
 	'color: #1E88E5; font-weight: bold;'
 )
 
@@ -14,23 +15,35 @@ if (typeof window.surgishop === 'undefined') {
 }
 
 /**
- * GS1 Barcode Parser
- * Extracts GTIN, Lot, and Expiry from GS1 barcode strings
+ * GS1 Application Identifier Definitions
+ * Based on GS1 General Specifications
+ * Inspired by bark.js implementation
+ */
+surgishop.GS1_AI_DEFINITIONS = {
+	'01': { name: 'GTIN', length: 14, type: 'numeric' },
+	'10': { name: 'LOT', length: 'variable', maxLength: 20, type: 'alphanumeric' },
+	'11': { name: 'PROD_DATE', length: 6, type: 'numeric' },
+	'13': { name: 'PACK_DATE', length: 6, type: 'numeric' },
+	'15': { name: 'BEST_BEFORE', length: 6, type: 'numeric' },
+	'17': { name: 'EXPIRY', length: 6, type: 'numeric' },
+	'21': { name: 'SERIAL', length: 'variable', maxLength: 20, type: 'alphanumeric' },
+	'30': { name: 'COUNT', length: 'variable', maxLength: 8, type: 'numeric' },
+	'310': { name: 'NET_WEIGHT_KG', length: 6, type: 'numeric' },
+	'37': { name: 'QUANTITY', length: 'variable', maxLength: 8, type: 'numeric' }
+}
+
+/**
+ * GS1 Barcode Parser (bark.js style)
+ * Extracts data from GS1 barcodes with proper AI handling
  */
 surgishop.GS1Parser = class GS1Parser {
-	// Constants for GS1 Application Identifiers
-	static AI_GTIN = '01'
-	static AI_EXPIRY = '17'
-	static AI_LOT = '10'
-	static GTIN_LENGTH = 14
-	static EXPIRY_LENGTH = 6
-	static MIN_GS1_LENGTH = 26 // AI01(2) + GTIN(14) + AI17(2) + Expiry(6) + AI10(2) + Lot(min 0)
-
 	/**
-	 * Parses a GS1 string to extract GTIN, Lot, and Expiry.
-	 * Assumes format: 01{GTIN14}17{YYMMDD}10{LOT variable to end}
-	 * @param {string} gs1_string The raw scanned string
-	 * @returns {object|null} Parsed data {gtin, lot, expiry} or null if not matching
+	 * Parses a GS1 string to extract all Application Identifiers.
+	 * Handles both fixed-length and variable-length fields.
+	 * Supports alphanumeric characters in variable fields (e.g., lot numbers).
+	 * 
+	 * @param {string} gs1_string The raw scanned GS1 barcode string
+	 * @returns {object|null} Parsed data with extracted AIs or null if parsing fails
 	 */
 	static parse(gs1_string) {
 		console.log(
@@ -43,59 +56,122 @@ surgishop.GS1Parser = class GS1Parser {
 			return null
 		}
 
-		// Check if numeric and minimum length
-		if (!gs1_string.match(/^\d+$/) || gs1_string.length < this.MIN_GS1_LENGTH) {
-			console.log(
-				`🏥 GS1 Parse Failed: Not a valid numeric string or too short (min ${this.MIN_GS1_LENGTH} chars)`
-			)
-			return null
-		}
-
+		const result = {}
 		let pos = 0
 
-		// Parse AI 01: GTIN (14 digits)
-		if (gs1_string.substr(pos, 2) !== this.AI_GTIN) {
-			console.log(
-				`🏥 GS1 Parse Failed: No AI01 at pos ${pos}, found "${gs1_string.substr(pos, 2)}"`
-			)
-			return null
-		}
-		pos += 2
-		const gtin = gs1_string.substr(pos, this.GTIN_LENGTH)
-		pos += this.GTIN_LENGTH
+		// Keep parsing until we've consumed the entire string
+		while (pos < gs1_string.length) {
+			// Try to identify the AI (2 or 3 digits)
+			let ai = null
+			let aiDef = null
 
-		// Parse AI 17: Expiry (6 digits YYMMDD)
-		if (gs1_string.substr(pos, 2) !== this.AI_EXPIRY) {
-			console.log(
-				`🏥 GS1 Parse Failed: No AI17 at pos ${pos}, found "${gs1_string.substr(pos, 2)}"`
-			)
-			return null
-		}
-		pos += 2
-		const expiry = gs1_string.substr(pos, this.EXPIRY_LENGTH)
-		pos += this.EXPIRY_LENGTH
+			// Check for 3-digit AI first
+			if (pos + 3 <= gs1_string.length) {
+				const threeDigitAI = gs1_string.substr(pos, 3)
+				if (surgishop.GS1_AI_DEFINITIONS[threeDigitAI]) {
+					ai = threeDigitAI
+					aiDef = surgishop.GS1_AI_DEFINITIONS[ai]
+				}
+			}
 
-		// Parse AI 10: Lot (variable length, rest of string)
-		if (gs1_string.substr(pos, 2) !== this.AI_LOT) {
-			console.log(
-				`🏥 GS1 Parse Failed: No AI10 at pos ${pos}, found "${gs1_string.substr(pos, 2)}"`
-			)
-			return null
-		}
-		pos += 2
-		const lot = gs1_string.substr(pos)
+			// If not found, check for 2-digit AI
+			if (!ai && pos + 2 <= gs1_string.length) {
+				const twoDigitAI = gs1_string.substr(pos, 2)
+				if (surgishop.GS1_AI_DEFINITIONS[twoDigitAI]) {
+					ai = twoDigitAI
+					aiDef = surgishop.GS1_AI_DEFINITIONS[ai]
+				}
+			}
 
-		// Validate extracted values
-		if (!gtin || !lot) {
-			console.log('🏥 GS1 Parse Failed: Missing GTIN or lot after parsing')
-			return null
+			if (!ai) {
+				console.log(
+					`🏥 GS1 Parse Failed: Unknown AI at position ${pos}, found "${gs1_string.substr(pos, 3)}"`
+				)
+				return null
+			}
+
+			// Move position past the AI
+			pos += ai.length
+
+			// Extract the data based on AI definition
+			let data = ''
+			
+			if (aiDef.length === 'variable') {
+				// Variable length: read until end of string or until next AI
+				// For variable fields, we need to look ahead for the next AI
+				let endPos = pos
+				let foundNextAI = false
+
+				// Scan ahead looking for the next AI
+				for (let i = pos; i < gs1_string.length; i++) {
+					// Check if we've hit a potential AI (2 or 3 digits)
+					if (i > pos) {
+						const potentialAI2 = gs1_string.substr(i, 2)
+						const potentialAI3 = gs1_string.substr(i, 3)
+						
+						if (surgishop.GS1_AI_DEFINITIONS[potentialAI2] || 
+						    surgishop.GS1_AI_DEFINITIONS[potentialAI3]) {
+							endPos = i
+							foundNextAI = true
+							break
+						}
+					}
+					
+					// Stop if we've reached max length
+					if (aiDef.maxLength && (i - pos) >= aiDef.maxLength) {
+						endPos = i
+						break
+					}
+				}
+
+				// If no next AI found, read to end of string
+				if (!foundNextAI) {
+					endPos = gs1_string.length
+				}
+
+				data = gs1_string.substring(pos, endPos)
+				pos = endPos
+			} else {
+				// Fixed length: read exactly the specified number of characters
+				const length = parseInt(aiDef.length)
+				if (pos + length > gs1_string.length) {
+					console.log(
+						`🏥 GS1 Parse Failed: Not enough characters for AI ${ai} (need ${length}, have ${gs1_string.length - pos})`
+					)
+					return null
+				}
+				data = gs1_string.substr(pos, length)
+				pos += length
+			}
+
+			// Validate data type
+			if (aiDef.type === 'numeric' && !data.match(/^\d+$/)) {
+				console.log(
+					`🏥 GS1 Parse Failed: AI ${ai} (${aiDef.name}) should be numeric, got "${data}"`
+				)
+				return null
+			}
+
+			// Store the parsed value using the AI name
+			result[aiDef.name.toLowerCase()] = data
+			
+			console.log(
+				`🏥 GS1 Parsed AI ${ai} (${aiDef.name}): "${data}"`
+			)
 		}
+
+		// For backward compatibility, add aliases
+		if (result.gtin) result.gtin = result.gtin
+		if (result.expiry) result.expiry = result.expiry
+		if (result.lot) result.lot = result.lot
 
 		console.log(
-			`%c🏥 GS1 Parse Success: GTIN=${gtin}, Lot=${lot}, Expiry=${expiry}`,
-			'color: #4CAF50; font-weight: bold;'
+			`%c🏥 GS1 Parse Success:`,
+			'color: #4CAF50; font-weight: bold;',
+			result
 		)
-		return { gtin, lot, expiry }
+		
+		return result
 	}
 
 	/**
@@ -105,20 +181,58 @@ surgishop.GS1Parser = class GS1Parser {
 	 */
 	static isGS1(input) {
 		if (!input || typeof input !== 'string') return false
-		if (!input.match(/^\d+$/)) return false
-		if (input.length < this.MIN_GS1_LENGTH) return false
-		if (!input.startsWith(this.AI_GTIN)) return false
-		return true
+		if (input.length < 4) return false // Minimum: AI (2) + data (2)
+		
+		// Check if it starts with a known AI
+		const twoDigitAI = input.substr(0, 2)
+		const threeDigitAI = input.substr(0, 3)
+		
+		return !!(surgishop.GS1_AI_DEFINITIONS[twoDigitAI] || 
+		          surgishop.GS1_AI_DEFINITIONS[threeDigitAI])
 	}
 
 	/**
 	 * Formats a GS1 barcode for display (with parentheses around AIs)
-	 * @param {object} parsed The parsed GS1 data {gtin, lot, expiry}
+	 * @param {object} parsed The parsed GS1 data
 	 * @returns {string} Formatted string like (01)12345678901234(17)250101(10)LOT123
 	 */
 	static format(parsed) {
-		if (!parsed || !parsed.gtin || !parsed.lot) return ''
-		return `(${this.AI_GTIN})${parsed.gtin}(${this.AI_EXPIRY})${parsed.expiry || ''}(${this.AI_LOT})${parsed.lot}`
+		if (!parsed || typeof parsed !== 'object') return ''
+		
+		let formatted = ''
+		
+		// Add AIs in standard order
+		if (parsed.gtin) formatted += `(01)${parsed.gtin}`
+		if (parsed.expiry) formatted += `(17)${parsed.expiry}`
+		if (parsed.best_before) formatted += `(15)${parsed.best_before}`
+		if (parsed.prod_date) formatted += `(11)${parsed.prod_date}`
+		if (parsed.lot) formatted += `(10)${parsed.lot}`
+		if (parsed.serial) formatted += `(21)${parsed.serial}`
+		if (parsed.quantity) formatted += `(37)${parsed.quantity}`
+		
+		return formatted
+	}
+
+	/**
+	 * Converts parsed data back to raw GS1 string (without parentheses)
+	 * @param {object} parsed The parsed GS1 data
+	 * @returns {string} Raw GS1 string
+	 */
+	static stringify(parsed) {
+		if (!parsed || typeof parsed !== 'object') return ''
+		
+		let raw = ''
+		
+		// Add AIs in standard order (without parentheses)
+		if (parsed.gtin) raw += `01${parsed.gtin}`
+		if (parsed.expiry) raw += `17${parsed.expiry}`
+		if (parsed.best_before) raw += `15${parsed.best_before}`
+		if (parsed.prod_date) raw += `11${parsed.prod_date}`
+		if (parsed.lot) raw += `10${parsed.lot}`
+		if (parsed.serial) raw += `21${parsed.serial}`
+		if (parsed.quantity) raw += `37${parsed.quantity}`
+		
+		return raw
 	}
 }
 

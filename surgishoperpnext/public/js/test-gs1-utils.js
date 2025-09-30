@@ -19,15 +19,16 @@ surgishop.GS1Tests = {
 
 		const tests = [
 			this.testValidGS1Parse,
+			this.testValidGS1ParseAlphanumericLot,
 			this.testInvalidGS1TooShort,
-			this.testInvalidGS1NonNumeric,
 			this.testInvalidGS1MissingAI01,
 			this.testInvalidGS1MissingAI17,
 			this.testInvalidGS1MissingAI10,
 			this.testIsGS1Valid,
 			this.testIsGS1Invalid,
 			this.testFormatGS1,
-			this.testParseWithVariableLotLength
+			this.testParseWithVariableLotLength,
+			this.testStringifyGS1
 		]
 
 		tests.forEach((test) => {
@@ -94,18 +95,22 @@ surgishop.GS1Tests = {
 		this.assertEqual(result.lot, 'LOT123', 'Lot should match')
 	},
 
+	testValidGS1ParseAlphanumericLot: function () {
+		// Real-world test case with alphanumeric lot number
+		const input = '012070503100301617251220103IAIDP06'
+		const result = surgishop.GS1Parser.parse(input)
+
+		this.assertNotNull(result, 'Result should not be null')
+		this.assertEqual(result.gtin, '20705031003016', 'GTIN should match')
+		this.assertEqual(result.expiry, '251220', 'Expiry should match (Dec 20, 2025)')
+		this.assertEqual(result.lot, '3IAIDP06', 'Alphanumeric lot should match')
+	},
+
 	testInvalidGS1TooShort: function () {
 		const input = '01123456789'
 		const result = surgishop.GS1Parser.parse(input)
 
 		this.assertNull(result, 'Result should be null for too short input')
-	},
-
-	testInvalidGS1NonNumeric: function () {
-		const input = '01ABCDEFGHIJKL1725013110LOT123'
-		const result = surgishop.GS1Parser.parse(input)
-
-		this.assertNull(result, 'Result should be null for non-numeric input')
 	},
 
 	testInvalidGS1MissingAI01: function () {
@@ -168,6 +173,22 @@ surgishop.GS1Tests = {
 			result2.lot,
 			'VERYLONGLOTNUM12345',
 			'Should handle long lot numbers'
+		)
+	},
+
+	testStringifyGS1: function () {
+		const parsed = {
+			gtin: '12345678901234',
+			expiry: '250131',
+			lot: '3IAIDP06'
+		}
+		const raw = surgishop.GS1Parser.stringify(parsed)
+		const expected = '01123456789012341725013110103IAIDP06'
+
+		this.assertEqual(
+			raw,
+			expected,
+			'Stringify should reconstruct raw GS1 string'
 		)
 	}
 }

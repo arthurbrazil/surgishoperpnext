@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.1.0
+- **Current Version**: 0.1.1
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,51 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.1.1 (GS1 Parser Enhancement - bark.js Style)
+**Enhanced GS1 Barcode Parsing**
+
+#### 🎯 Critical Fix
+- **Fixed GS1 Parser to support alphanumeric lot numbers** - Previous version only accepted numeric-only barcodes
+- Real-world barcode now supported: `012070503100301617251220103IAIDP06` (lot: `3IAIDP06`)
+
+#### 🏗️ Parser Rewrite (Inspired by bark.js)
+- **Complete rewrite of GS1Parser** using Application Identifier (AI) definitions
+- **AI Definition Table** with fixed/variable length and numeric/alphanumeric type support
+- **Intelligent variable-length field parsing** - automatically detects next AI or end of string
+- **Support for multiple GS1 AIs**:
+  - AI 01: GTIN (14 digits, numeric)
+  - AI 10: LOT (variable, alphanumeric) ← **Now supports alphanumeric!**
+  - AI 11: Production Date (6 digits, numeric)
+  - AI 13: Packaging Date (6 digits, numeric)
+  - AI 15: Best Before (6 digits, numeric)
+  - AI 17: Expiry Date (6 digits, numeric)
+  - AI 21: Serial Number (variable, alphanumeric)
+  - AI 30: Count (variable, numeric)
+  - AI 37: Quantity (variable, numeric)
+  - AI 310: Net Weight in KG (6 digits, numeric)
+
+#### ✅ Enhanced Testing
+- Added test case for alphanumeric lot numbers (`testValidGS1ParseAlphanumericLot`)
+- Added `testStringifyGS1` for round-trip conversion
+- Removed obsolete `testInvalidGS1NonNumeric` (now valid with alphanumeric support)
+
+#### 📝 New Features
+- `GS1Parser.stringify()` - Convert parsed object back to raw GS1 string
+- `GS1Parser.format()` - Enhanced to handle all supported AIs
+- Better AI detection (checks 3-digit AIs before 2-digit AIs)
+
+#### 🐛 Bug Fixes
+- Fixed: Barcode `012070503100301617251220103IAIDP06` now parses correctly
+- Fixed: Variable-length fields now properly detect the next AI
+- Fixed: Alphanumeric characters in lot numbers no longer cause parse failure
+
+#### 📚 Documentation
+- Updated comments to reference bark.js inspiration
+- Added comprehensive AI definition documentation
+- Improved logging with per-AI parse status
+
+---
 
 ### Version 0.1.0 (Code Quality & Testing Release)
 **Major Refactoring and Improvements**
