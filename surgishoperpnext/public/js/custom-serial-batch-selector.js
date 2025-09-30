@@ -73,38 +73,19 @@ surgishop.CustomSerialBatchPackageSelector = class CustomSerialBatchPackageSelec
     });
   }
 
-  // Reuse GS1 parser from custom-barcode-scanner.js
+  /**
+   * Parses a GS1 string using the shared GS1Parser utility.
+   * @param {string} gs1_string The raw scanned string
+   * @returns {object|null} Parsed data {gtin, lot, expiry} or null if not matching
+   */
   parse_gs1_string(gs1_string) {
-    if (!gs1_string.match(/^\d+$/) || gs1_string.length < 16 + 8 + 2) {
-      console.log("🏥 Not a valid numeric GS1 string or too short in selector");
+    // Use the shared GS1Parser utility
+    if (window.surgishop && window.surgishop.GS1Parser) {
+      return window.surgishop.GS1Parser.parse(gs1_string);
+    } else {
+      console.error('🏥 GS1Parser not loaded! Make sure gs1-utils.js is included.');
       return null;
     }
-
-    let pos = 0;
-
-    // AI 01: GTIN (14 digits)
-    if (gs1_string.substr(pos, 2) !== "01") return null;
-    pos += 2;
-    let gtin = gs1_string.substr(pos, 14);
-    pos += 14;
-
-    // AI 17: Expiry (6 digits YYMMDD)
-    if (gs1_string.substr(pos, 2) !== "17") return null;
-    pos += 2;
-    let expiry = gs1_string.substr(pos, 6);
-    pos += 6;
-
-    // AI 10: Lot (variable, rest of string)
-    if (gs1_string.substr(pos, 2) !== "10") return null;
-    pos += 2;
-    let lot = gs1_string.substr(pos);
-
-    if (!gtin || !lot) return null;
-
-    console.log(
-      `🏥 Manually parsed GS1 in selector: GTIN=${gtin}, Lot=${lot}, Expiry=${expiry}`
-    );
-    return { gtin, lot, expiry };
   }
 
   // Custom method to add parsed GS1 data to bundle

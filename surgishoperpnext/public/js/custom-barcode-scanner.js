@@ -47,53 +47,18 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   }
 
   /**
-   * Parses a GS1 string to extract GTIN, Lot, and Expiry.
-   * Assumes format: 01{GTIN14}17{YYMMDD}10{LOT variable to end}
+   * Parses a GS1 string using the shared GS1Parser utility.
    * @param {string} gs1_string The raw scanned string
-   * @returns {object|null} Parsed data or null if not matching the assumed format
+   * @returns {object|null} Parsed data {gtin, lot, expiry} or null if not matching
    */
   parse_gs1_string(gs1_string) {
-    console.log(`🏥 GS1 Parse Start: Input="${gs1_string}", Length=${gs1_string.length}`);
-    if (!gs1_string.match(/^\d+$/) || gs1_string.length < 16 + 8 + 2) {
-      console.log('🏥 GS1 Parse Failed: Not a valid numeric string or too short (min 26 chars)');
+    // Use the shared GS1Parser utility
+    if (window.surgishop && window.surgishop.GS1Parser) {
+      return window.surgishop.GS1Parser.parse(gs1_string);
+    } else {
+      console.error('🏥 GS1Parser not loaded! Make sure gs1-utils.js is included.');
       return null;
     }
-
-    let pos = 0;
-
-    // AI 01: GTIN (14 digits)
-    if (gs1_string.substr(pos, 2) !== "01") {
-      console.log(`🏥 GS1 Parse Failed: No AI01 at pos ${pos}, found "${gs1_string.substr(pos, 2)}"`);
-      return null;
-    }
-    pos += 2;
-    let gtin = gs1_string.substr(pos, 14);
-    pos += 14;
-
-    // AI 17: Expiry (6 digits YYMMDD)
-    if (gs1_string.substr(pos, 2) !== "17") {
-      console.log(`🏥 GS1 Parse Failed: No AI17 at pos ${pos}, found "${gs1_string.substr(pos, 2)}"`);
-      return null;
-    }
-    pos += 2;
-    let expiry = gs1_string.substr(pos, 6);
-    pos += 6;
-
-    // AI 10: Lot (variable, rest of string)
-    if (gs1_string.substr(pos, 2) !== "10") {
-      console.log(`🏥 GS1 Parse Failed: No AI10 at pos ${pos}, found "${gs1_string.substr(pos, 2)}"`);
-      return null;
-    }
-    pos += 2;
-    let lot = gs1_string.substr(pos);
-
-    if (!gtin || !lot) {
-      console.log('🏥 GS1 Parse Failed: Missing GTIN or lot after parsing');
-      return null;
-    }
-
-    console.log(`🏥 GS1 Parse Success: GTIN=${gtin}, Lot=${lot}, Expiry=${expiry}`);
-    return { gtin, lot, expiry };
   }
 
   process_scan() {
@@ -374,18 +339,20 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   }
 
   prepare_item_for_scan(row, item_code, barcode, batch_no, serial_no) {
-    // Simplified implementation for now
-    const increment = async (value = 1) => {
-      const item_data = {
-        item_code: item_code,
+    return new Promise((resolve) => {
+      const increment = async (value = 1) => {
+        const item_data = {
+          item_code: item_code,
+          use_serial_batch_fields: 1.0,
+        };
+        item_data[this.qty_field] =
+          Number(row[this.qty_field] || 0) + Number(value);
+        await frappe.model.set_value(row.doctype, row.name, item_data);
+        return value;
       };
-      item_data[this.qty_field] =
-        Number(row[this.qty_field] || 0) + Number(value);
-      await frappe.model.set_value(row.doctype, row.name, item_data);
-      return value;
-    };
 
-    increment().then((value) => resolve(value));
+      increment().then((value) => resolve(value));
+    });
   }
 
   async set_serial_no(row, serial_no) {

@@ -154,6 +154,51 @@ doc_events = {
 - **Error Handling**: Graceful error handling
 - **Data Integrity**: Maintains data integrity while allowing expired items
 
+## Testing
+
+### Running Python Tests
+
+The app includes comprehensive unit tests for the barcode scanning and GS1 parsing functionality.
+
+```bash
+# Run all tests for the app
+bench --site [your-site] run-tests --app surgishoperpnext
+
+# Run specific test module
+bench --site [your-site] run-tests surgishoperpnext.surgishoperpnext.api.test_barcode
+bench --site [your-site] run-tests surgishoperpnext.surgishoperpnext.api.test_gs1_parser
+```
+
+### Running JavaScript Tests
+
+The GS1Parser utility includes browser-based unit tests.
+
+```javascript
+// Open browser console and run:
+surgishop.runGS1Tests()
+```
+
+### Test Coverage
+
+- **Barcode API Tests** (`test_barcode.py`)
+  - Valid barcode scanning
+  - Invalid barcode handling
+  - Barcode validation
+  - Context parameter handling
+  
+- **GS1 Parser Tests** (`test_gs1_parser.py`)
+  - Valid GS1 barcode parsing
+  - Batch creation and retrieval
+  - Invalid input handling
+  - Expiry date parsing
+  - Whitespace handling
+  
+- **GS1Parser Utility Tests** (`test-gs1-utils.js`)
+  - GS1 string parsing
+  - Application Identifier validation
+  - Format validation
+  - Edge case handling
+
 ## Troubleshooting
 
 ### Common Issues
@@ -226,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.4.2
+- **Current Version**: 0.1.0
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -242,6 +287,53 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.1.0 (Code Quality & Testing Release)
+**Major Refactoring and Improvements**
+
+#### 🔧 Critical Fixes
+- Fixed missing import in `gs1_parser.py` - added `from frappe import _`
+- Fixed JavaScript scoping error in `custom-barcode-scanner.js` - `prepare_item_for_scan()` now returns a proper Promise
+- Implemented thread-safe monkey-patching in `stock_controller.py` using `frappe.local` instead of global variables
+
+#### 🏗️ Architecture Improvements
+- **Extracted GS1 parsing to shared utility** - Created `gs1-utils.js` to eliminate code duplication
+- **Centralized GS1Parser class** with constants, validation, and formatting methods
+- Both `custom-barcode-scanner.js` and `custom-serial-batch-selector.js` now use the shared GS1Parser
+
+#### ✅ Testing & Quality
+- Added comprehensive unit tests for barcode scanning API (`test_barcode.py`)
+- Added comprehensive unit tests for GS1 parser API (`test_gs1_parser.py`)
+- Added JavaScript unit tests for GS1Parser utility (`test-gs1-utils.js`)
+- Test coverage for edge cases, error handling, and input validation
+
+#### 🛡️ Error Handling
+- Enhanced error handling in `gs1_parser.py` with comprehensive try-catch blocks
+- Added input validation and sanitization (whitespace stripping)
+- Added item validation (disabled check, batch_no support check)
+- Improved error logging with `frappe.log_error()` for full stack traces
+- Better error messages for users
+
+#### 📝 Code Quality
+- Added comprehensive docstrings to all functions
+- Improved logging throughout with clear context
+- Added type hints and parameter documentation
+- Better code organization and maintainability
+- Removed duplicate code (DRY principle)
+
+#### 🔢 Version Alignment
+- Aligned all version numbers to 0.1.0 across the codebase
+- Updated `__init__.py`, `hooks.py`, and documentation
+- Consistent versioning for cache busting on JavaScript assets
+
+#### 📚 Documentation
+- Updated INSTRUCTIONS.md with new version information
+- Documented all fixes and improvements
+- Added security notes for permission bypass in batch creation
+
+---
+
+### Previous Versions (Historical)
 
 ### Version 0.4.2 (GS1 Parser Correction)
 - Switched to gs1-parser library from CDN for accurate GS1 parsing.

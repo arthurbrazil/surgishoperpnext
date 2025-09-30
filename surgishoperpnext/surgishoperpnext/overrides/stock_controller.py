@@ -6,26 +6,23 @@ from frappe import _
 from frappe.utils import getdate, get_link_to_form, flt
 from erpnext.controllers.stock_controller import BatchExpiredError
 
-# Store original validation function
-_original_validate_serialized_batch = None
-
 def disable_batch_expiry_validation(doc, method):
 	"""
 	Disable batch expiry validation for ALL transactions by temporarily
 	monkey-patching the StockController validation method.
 	This allows expired items for research purposes in both inbound and outbound transactions.
+	Uses frappe.local for thread-safe storage of the original function.
 	"""
-	global _original_validate_serialized_batch
-	
 	frappe.logger().info(f"SurgiShopERPNext: Disabling batch expiry validation for all transactions - {doc.doctype}")
 	
 	# Import StockController
 	try:
 		from erpnext.controllers.stock_controller import StockController
 		
-		# Store original if not already stored
-		if _original_validate_serialized_batch is None:
-			_original_validate_serialized_batch = StockController.validate_serialized_batch
+		# Store original function in frappe.local (thread-safe)
+		if not hasattr(frappe.local, 'surgishop_original_validate_batch'):
+			frappe.local.surgishop_original_validate_batch = StockController.validate_serialized_batch
+			frappe.logger().info(f"SurgiShopERPNext: Stored original validation function in thread-local storage")
 		
 		frappe.logger().info(f"SurgiShopERPNext: Completely disabling batch expiry validation for {doc.doctype} (research purposes)")
 		# Replace with a no-op function for ALL transactions
@@ -33,25 +30,28 @@ def disable_batch_expiry_validation(doc, method):
 				
 	except Exception as e:
 		frappe.logger().error(f"SurgiShopERPNext: Error in disable_batch_expiry_validation: {str(e)}")
+		frappe.log_error(title="SurgiShop Batch Override Error", message=frappe.get_traceback())
 
 def restore_batch_expiry_validation(doc, method):
 	"""
 	Restore the original batch expiry validation after document processing.
+	Uses frappe.local for thread-safe retrieval of the original function.
 	"""
-	global _original_validate_serialized_batch
-	
 	frappe.logger().info(f"SurgiShopERPNext: Restoring batch validation after {doc.doctype}")
 	
 	try:
 		from erpnext.controllers.stock_controller import StockController
 		
-		# Restore original function
-		if _original_validate_serialized_batch:
-			StockController.validate_serialized_batch = _original_validate_serialized_batch
-			frappe.logger().info(f"SurgiShopERPNext: Batch validation restored")
+		# Restore original function from frappe.local (thread-safe)
+		if hasattr(frappe.local, 'surgishop_original_validate_batch'):
+			StockController.validate_serialized_batch = frappe.local.surgishop_original_validate_batch
+			frappe.logger().info(f"SurgiShopERPNext: Batch validation restored from thread-local storage")
+		else:
+			frappe.logger().warning(f"SurgiShopERPNext: No original validation function found in thread-local storage")
 			
 	except Exception as e:
 		frappe.logger().error(f"SurgiShopERPNext: Error in restore_batch_expiry_validation: {str(e)}")
+		frappe.log_error(title="SurgiShop Batch Restore Error", message=frappe.get_traceback())
 
 
 def is_inbound_transaction(doc, item_row):
