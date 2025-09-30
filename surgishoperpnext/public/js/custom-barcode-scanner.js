@@ -53,35 +53,46 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
    * @returns {object|null} Parsed data or null if not matching the assumed format
    */
   parse_gs1_string(gs1_string) {
+    console.log(`🏥 GS1 Parse Start: Input="${gs1_string}", Length=${gs1_string.length}`);
     if (!gs1_string.match(/^\d+$/) || gs1_string.length < 16 + 8 + 2) {
-      console.log("🏥 Not a valid numeric GS1 string or too short");
+      console.log('🏥 GS1 Parse Failed: Not a valid numeric string or too short (min 26 chars)');
       return null;
     }
 
     let pos = 0;
 
     // AI 01: GTIN (14 digits)
-    if (gs1_string.substr(pos, 2) !== "01") return null;
+    if (gs1_string.substr(pos, 2) !== "01") {
+      console.log(`🏥 GS1 Parse Failed: No AI01 at pos ${pos}, found "${gs1_string.substr(pos, 2)}"`);
+      return null;
+    }
     pos += 2;
     let gtin = gs1_string.substr(pos, 14);
     pos += 14;
 
     // AI 17: Expiry (6 digits YYMMDD)
-    if (gs1_string.substr(pos, 2) !== "17") return null;
+    if (gs1_string.substr(pos, 2) !== "17") {
+      console.log(`🏥 GS1 Parse Failed: No AI17 at pos ${pos}, found "${gs1_string.substr(pos, 2)}"`);
+      return null;
+    }
     pos += 2;
     let expiry = gs1_string.substr(pos, 6);
     pos += 6;
 
     // AI 10: Lot (variable, rest of string)
-    if (gs1_string.substr(pos, 2) !== "10") return null;
+    if (gs1_string.substr(pos, 2) !== "10") {
+      console.log(`🏥 GS1 Parse Failed: No AI10 at pos ${pos}, found "${gs1_string.substr(pos, 2)}"`);
+      return null;
+    }
     pos += 2;
     let lot = gs1_string.substr(pos);
 
-    if (!gtin || !lot) return null;
+    if (!gtin || !lot) {
+      console.log('🏥 GS1 Parse Failed: Missing GTIN or lot after parsing');
+      return null;
+    }
 
-    console.log(
-      `🏥 Manually parsed GS1: GTIN=${gtin}, Lot=${lot}, Expiry=${expiry}`
-    );
+    console.log(`🏥 GS1 Parse Success: GTIN=${gtin}, Lot=${lot}, Expiry=${expiry}`);
     return { gtin, lot, expiry };
   }
 
