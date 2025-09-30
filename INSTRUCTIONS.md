@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.1.2
+- **Current Version**: 0.1.3
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,40 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.1.3 (Sound Feedback Enhancement)
+**Added Audio Feedback for Barcode Scanning**
+
+#### 🔊 New Features
+- **Success Sound** - Plays when item is added to list or quantity is incremented
+- **Error Sound** - Plays when barcode scan fails or item not found
+- **Enabled by Default** - Sounds are now automatically enabled for better UX
+
+#### 🎵 Sound Implementation
+- **Success Sound**: Uses Frappe's built-in `"submit"` sound (pleasant beep)
+- **Error Sound**: Uses Frappe's built-in `"error"` sound (alert tone)
+- **Configurable**: Can be customized via `play_success_sound` and `play_fail_sound` options
+- **Console Logging**: Added 🔊 emoji logging to indicate when sounds play
+
+#### ✅ When Sounds Play
+- ✓ **Success Sound**: 
+  - New item added to items table
+  - Item quantity incremented
+  - Batch/serial number successfully assigned
+- ✗ **Error Sound**:
+  - Barcode not found
+  - Item doesn't exist
+  - GS1 parsing fails
+  - API errors
+  - Invalid scan
+
+#### 🎯 User Experience
+- Immediate audio feedback confirms scan success/failure
+- No need to look at screen to know if scan was successful
+- Faster scanning workflow with auditory confirmation
+- Reduces data entry errors
+
+---
 
 ### Version 0.1.2 (Critical Fix - GS1Parser Loading)
 **Hot Fix for GS1Parser Not Loading**

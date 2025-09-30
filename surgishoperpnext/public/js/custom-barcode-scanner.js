@@ -33,8 +33,17 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     this.dont_allow_new_row = opts.dont_allow_new_row;
     this.prompt_qty = opts.prompt_qty;
     this.items_table_name = opts.items_table_name || "items";
-    this.success_sound = opts.play_success_sound;
-    this.fail_sound = opts.play_fail_sound;
+    
+    // Enable sounds by default with Frappe built-in sounds
+    // 'submit' sound for success (pleasant beep)
+    // 'error' sound for failures (alert tone)
+    this.success_sound = opts.play_success_sound !== undefined 
+      ? opts.play_success_sound 
+      : "submit";
+    this.fail_sound = opts.play_fail_sound !== undefined 
+      ? opts.play_fail_sound 
+      : "error";
+    
     this.scan_api =
       opts.scan_api ||
       "surgishoperpnext.surgishoperpnext.api.barcode.scan_barcode";
@@ -505,11 +514,17 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   }
 
   play_success_sound() {
-    this.success_sound && frappe.utils.play_sound(this.success_sound);
+    if (this.success_sound) {
+      console.log(`🔊 Playing success sound: ${this.success_sound}`);
+      frappe.utils.play_sound(this.success_sound);
+    }
   }
 
   play_fail_sound() {
-    this.fail_sound && frappe.utils.play_sound(this.fail_sound);
+    if (this.fail_sound) {
+      console.log(`🔊 Playing error sound: ${this.fail_sound}`);
+      frappe.utils.play_sound(this.fail_sound);
+    }
   }
 
   clean_up() {
