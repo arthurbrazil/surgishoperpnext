@@ -26,6 +26,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     this.barcode_field = opts.barcode_field || "barcode";
     this.serial_no_field = opts.serial_no_field || "serial_no";
     this.batch_no_field = opts.batch_no_field || "batch_no";
+    this.batch_expiry_date_field = opts.batch_expiry_date_field || "batch_expiry_date";
     this.uom_field = opts.uom_field || "uom";
     this.qty_field = opts.qty_field || "qty";
     this.warehouse_field = opts.warehouse_field || "warehouse";
@@ -181,6 +182,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         if (r && r.message && r.message.found_item) {
           r.message.item_code = r.message.found_item;
           r.message.batch_no = r.message.batch;
+          r.message.batch_expiry_date = r.message.batch_expiry_date;
         }
         callback(r);
       })
@@ -233,6 +235,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         item_code,
         barcode,
         batch_no,
+        batch_expiry_date,
         serial_no,
         uom,
         default_warehouse,
@@ -288,6 +291,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         () => this.set_barcode_uom(row, uom),
         () => this.set_serial_no(row, serial_no),
         () => this.set_batch_no(row, batch_no),
+        () => this.set_batch_expiry_date(row, batch_expiry_date),
         () => this.set_barcode(row, barcode),
         () => this.set_warehouse(row),
         () => this.clean_up(),
@@ -396,6 +400,18 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         row.name,
         this.batch_no_field,
         batch_no
+      );
+    }
+  }
+
+  async set_batch_expiry_date(row, batch_expiry_date) {
+    if (batch_expiry_date && frappe.meta.has_field(row.doctype, this.batch_expiry_date_field)) {
+      console.log(`🏥 SurgiShopERPNext: Setting batch expiry date: ${batch_expiry_date}`);
+      await frappe.model.set_value(
+        row.doctype,
+        row.name,
+        this.batch_expiry_date_field,
+        batch_expiry_date
       );
     }
   }

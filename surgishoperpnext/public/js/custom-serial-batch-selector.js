@@ -100,6 +100,7 @@ surgishop.CustomSerialBatchPackageSelector = class CustomSerialBatchPackageSelec
         "expiry_date",
         data.batch_expiry_date
       );
+      console.log(`🏥 SurgiShopERPNext: Added batch expiry date to bundle: ${data.batch_expiry_date}`);
     }
     // Add more fields as needed (e.g., qty=1)
     frappe.model.set_value(row.doctype, row.name, "qty", 1);
