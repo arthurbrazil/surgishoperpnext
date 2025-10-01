@@ -44,7 +44,7 @@ surgishop.ExpiryFieldTest = {
 		console.log('📝 Fields that would be set in the form:')
 		console.log(`  - item_code: ${processedResponse.item_code}`)
 		console.log(`  - batch_no: ${processedResponse.batch_no}`)
-		console.log(`  - batch_expiry_date: ${processedResponse.batch_expiry_date}`)
+		console.log(`  - custom_expiration_date: ${processedResponse.batch_expiry_date}`)
 		console.log(`  - barcode: [GS1 barcode string]`)
 
 		// Test 4: Show expected user experience
@@ -52,12 +52,12 @@ surgishop.ExpiryFieldTest = {
 		console.log('  1. User scans GS1 barcode: 012070503100301617251220103IAIDP06')
 		console.log('  2. System parses: GTIN=20705031003016, Expiry=251220, Lot=3IAIDP06')
 		console.log('  3. System creates/finds batch: BATCH-001')
-		console.log('  4. System sets batch_expiry_date: 2025-12-20')
+		console.log('  4. System sets custom_expiration_date: 2025-12-20')
 		console.log('  5. User sees expiry date populated in the item row')
 
 		console.log('%c✅ Expiry Date Field Test Complete!', 'color: #4CAF50; font-weight: bold;')
-		console.log('💡 The batch_expiry_date field will be automatically populated when scanning GS1 barcodes')
-		console.log('💡 Make sure your transaction forms have a "batch_expiry_date" field in the items table')
+		console.log('💡 The custom_expiration_date field will be automatically populated when scanning GS1 barcodes')
+		console.log('💡 Make sure your transaction forms have a "custom_expiration_date" field in the items table')
 
 		return {
 			success: true,
