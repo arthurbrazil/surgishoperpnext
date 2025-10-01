@@ -295,7 +295,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       if (is_new_row && item_code) {
         const current_warehouse = this.frm.doc.last_scanned_warehouse || default_warehouse;
         console.log(`🏥 SurgiShopERPNext: Creating new row for item ${item_code} in warehouse ${current_warehouse}`);
-        console.log(`🏥 Debug - has_warehouse_field: ${has_warehouse_field}, warehouse_field: ${warehouse_field}, warehouse: ${warehouse}`);
       }
 
       if (!row) {
@@ -545,11 +544,16 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     const has_warehouse_field =
       warehouse_field &&
       frappe.meta.has_field(cur_grid.doctype, warehouse_field);
+    
+    // Get warehouse from multiple sources
     const warehouse = has_warehouse_field
-      ? this.frm.doc.last_scanned_warehouse || default_warehouse
+      ? this.frm.doc.last_scanned_warehouse || 
+        this.frm.doc.set_warehouse || 
+        default_warehouse
       : null;
       
     console.log(`🏥 Debug - warehouse_field: ${warehouse_field}, has_warehouse_field: ${has_warehouse_field}, warehouse: ${warehouse}`);
+    console.log(`🏥 Debug - last_scanned_warehouse: ${this.frm.doc.last_scanned_warehouse}, set_warehouse: ${this.frm.doc.set_warehouse}`);
 
     const matching_row = (row) => {
       const item_match = row.item_code == item_code;
@@ -563,7 +567,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       // STRICT warehouse matching: Only match if warehouses are exactly the same
       // This ensures same item/batch in different warehouses create separate line items
       let warehouse_match = true;
-      if (has_warehouse_field) {
+      if (has_warehouse_field && warehouse_field) {
         const current_warehouse = warehouse || null;
         const existing_warehouse = row[warehouse_field] || null;
         
