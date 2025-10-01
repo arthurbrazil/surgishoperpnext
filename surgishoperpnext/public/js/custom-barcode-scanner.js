@@ -147,6 +147,26 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 
       console.log("🏥 SurgiShopERPNext: Barcode scan result:", data);
 
+      // Handle warehouse-only responses
+      if (data.warehouse && !data.item_code) {
+        console.log("🏥 SurgiShopERPNext: Warehouse scanned:", data.warehouse);
+        this.handle_warehouse_scan(data.warehouse);
+        this.clean_up();
+        this.play_success_sound();
+        resolve(); // Resolve without adding items
+        return;
+      }
+
+      // Handle item responses (with item_code)
+      if (!data.item_code) {
+        console.warn("🏥 SurgiShopERPNext: No item_code in response, treating as error");
+        this.show_alert("No item found for this barcode", "red");
+        this.clean_up();
+        this.play_fail_sound();
+        reject(new Error("No item found"));
+        return;
+      }
+
       this.update_table(data)
         .then((row) => {
           this.play_success_sound();
@@ -163,6 +183,28 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       );
       reject(e);
     }
+  }
+
+  handle_warehouse_scan(warehouse_name) {
+    console.log(`🏥 SurgiShopERPNext: Handling warehouse scan: ${warehouse_name}`);
+    
+    // Set the warehouse on the document if there's a set_warehouse field
+    if (frappe.meta.has_field(this.frm.doctype, "set_warehouse")) {
+      frappe.model.set_value(this.frm.doctype, this.frm.doc.name, "set_warehouse", warehouse_name);
+      console.log(`🏥 SurgiShopERPNext: Set document warehouse to: ${warehouse_name}`);
+    }
+    
+    // Store the last scanned warehouse if the field exists
+    if (this.has_last_scanned_warehouse) {
+      frappe.model.set_value(this.frm.doctype, this.frm.doc.name, "last_scanned_warehouse", warehouse_name);
+      console.log(`🏥 SurgiShopERPNext: Stored last scanned warehouse: ${warehouse_name}`);
+    }
+    
+    // Show confirmation message
+    this.show_alert(`Warehouse set to: ${warehouse_name}`, "green", 3);
+    
+    // Refresh the form to update any warehouse-dependent fields
+    this.frm.refresh_fields();
   }
 
   gs1_api_call(gs1_data, callback) {
