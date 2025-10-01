@@ -293,8 +293,12 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       
       // Log warehouse-specific behavior
       if (is_new_row && item_code) {
-        const current_warehouse = this.frm.doc.last_scanned_warehouse || default_warehouse;
+        const current_warehouse = this.frm.doc.last_scanned_warehouse || this.frm.doc.set_warehouse || default_warehouse;
         console.log(`🏥 SurgiShopERPNext: Creating new row for item ${item_code} in warehouse ${current_warehouse}`);
+        console.log(`🏥 Debug - Reason: No matching row found with same warehouse`);
+      } else if (!is_new_row && item_code) {
+        const current_warehouse = this.frm.doc.last_scanned_warehouse || this.frm.doc.set_warehouse || default_warehouse;
+        console.log(`🏥 SurgiShopERPNext: Incrementing existing row for item ${item_code} in warehouse ${current_warehouse}`);
       }
 
       if (!row) {
@@ -571,17 +575,25 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         const current_warehouse = warehouse || null;
         const existing_warehouse = row[warehouse_field] || null;
         
+        console.log(`🏥 Debug - Row ${row.idx} warehouse check: current="${current_warehouse}", existing="${existing_warehouse}"`);
+        
         if (current_warehouse && existing_warehouse) {
           // Both have warehouses - must match exactly
           warehouse_match = current_warehouse === existing_warehouse;
+          console.log(`🏥 Debug - Both have warehouses: ${warehouse_match}`);
         } else if (current_warehouse && !existing_warehouse) {
           // Current scan has warehouse, existing row doesn't - don't match
           warehouse_match = false;
+          console.log(`🏥 Debug - Current has warehouse, existing doesn't: ${warehouse_match}`);
         } else if (!current_warehouse && existing_warehouse) {
           // Current scan has no warehouse, existing row has one - don't match
           warehouse_match = false;
+          console.log(`🏥 Debug - Current has no warehouse, existing does: ${warehouse_match}`);
+        } else {
+          // Both have no warehouse - match
+          warehouse_match = true;
+          console.log(`🏥 Debug - Both have no warehouse: ${warehouse_match}`);
         }
-        // If both have no warehouse, warehouse_match remains true
       }
 
       const matches = (
