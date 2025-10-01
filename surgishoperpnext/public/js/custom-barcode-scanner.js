@@ -290,6 +290,12 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         default_warehouse
       );
       const is_new_row = row && row.item_code ? false : true;
+      
+      // Log warehouse-specific behavior
+      if (is_new_row && item_code) {
+        const current_warehouse = this.frm.doc.last_scanned_warehouse || default_warehouse;
+        console.log(`🏥 SurgiShopERPNext: Creating new row for item ${item_code} in warehouse ${current_warehouse}`);
+      }
 
       if (!row) {
         if (this.dont_allow_new_row) {
@@ -501,7 +507,9 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     if (is_existing_row) {
       this.show_alert(`Row #${idx}: Qty increased by ${qty}`, "green");
     } else {
-      this.show_alert(`Row #${idx}: Item added`, "green");
+      const current_warehouse = this.frm.doc.last_scanned_warehouse;
+      const warehouse_msg = current_warehouse ? ` in ${current_warehouse}` : '';
+      this.show_alert(`Row #${idx}: Item added${warehouse_msg}`, "green");
     }
   }
 
@@ -550,9 +558,21 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         flt(row[this.qty_field]) < flt(row[this.max_qty_field]);
       const item_scanned = row.has_item_scanned;
 
+      // STRICT warehouse matching: Only match if warehouses are exactly the same
+      // This ensures same item/batch in different warehouses create separate line items
       let warehouse_match = true;
-      if (has_warehouse_field && warehouse && row[warehouse_field]) {
-        warehouse_match = row[warehouse_field] === warehouse;
+      if (has_warehouse_field) {
+        if (warehouse && row[warehouse_field]) {
+          // Both have warehouses - must match exactly
+          warehouse_match = row[warehouse_field] === warehouse;
+        } else if (warehouse && !row[warehouse_field]) {
+          // Current scan has warehouse, existing row doesn't - don't match
+          warehouse_match = false;
+        } else if (!warehouse && row[warehouse_field]) {
+          // Current scan has no warehouse, existing row has one - don't match
+          warehouse_match = false;
+        }
+        // If both have no warehouse, warehouse_match remains true
       }
 
       return (
