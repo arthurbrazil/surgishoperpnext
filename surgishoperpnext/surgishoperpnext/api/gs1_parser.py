@@ -105,6 +105,23 @@ def parse_gs1_and_get_batch(gtin, expiry, lot):
 			# Batch already exists, retrieve it
 			batch_doc = frappe.get_doc("Batch", batch_name)
 			frappe.logger().info(f"🏥 SurgiShopERPNext: Found existing batch: {batch_doc.name}")
+			
+			# Check if we need to update the expiry date
+			# Only update if the batch doesn't have an expiry date and we have one from the scan
+			if not batch_doc.expiry_date and expiry and len(expiry) == 6:
+				try:
+					# Parse the new expiry date from GS1 scan
+					expiry_date_obj = datetime.strptime(expiry, '%y%m%d')
+					new_expiry_date = expiry_date_obj.strftime('%Y-%m-%d')
+					
+					# Update the batch with the new expiry date
+					batch_doc.expiry_date = new_expiry_date
+					batch_doc.save(ignore_permissions=True)
+					frappe.logger().info(f"🏥 SurgiShopERPNext: Updated existing batch {batch_doc.name} with expiry date: {new_expiry_date}")
+				except ValueError as ve:
+					frappe.logger().warning(f"🏥 SurgiShopERPNext: Could not parse expiry date '{expiry}' for existing batch: {str(ve)}")
+			elif batch_doc.expiry_date and expiry:
+				frappe.logger().info(f"🏥 SurgiShopERPNext: Batch {batch_doc.name} already has expiry date: {batch_doc.expiry_date}")
 
 		# 4) Return found_item, final batch name, and batch_expiry_date
 		result = {
