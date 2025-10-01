@@ -26,7 +26,8 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     this.barcode_field = opts.barcode_field || "barcode";
     this.serial_no_field = opts.serial_no_field || "serial_no";
     this.batch_no_field = opts.batch_no_field || "batch_no";
-    this.batch_expiry_date_field = opts.batch_expiry_date_field || "custom_expiration_date";
+    this.batch_expiry_date_field =
+      opts.batch_expiry_date_field || "custom_expiration_date";
     this.uom_field = opts.uom_field || "uom";
     this.qty_field = opts.qty_field || "qty";
     this.warehouse_field = opts.warehouse_field || "warehouse";
@@ -34,17 +35,17 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     this.dont_allow_new_row = opts.dont_allow_new_row;
     this.prompt_qty = opts.prompt_qty;
     this.items_table_name = opts.items_table_name || "items";
-    
+
     // Enable sounds by default with Frappe built-in sounds
     // 'submit' sound for success (pleasant beep)
     // 'error' sound for failures (alert tone)
-    this.success_sound = opts.play_success_sound !== undefined 
-      ? opts.play_success_sound 
-      : "submit";
-    this.fail_sound = opts.play_fail_sound !== undefined 
-      ? opts.play_fail_sound 
-      : "error";
-    
+    this.success_sound =
+      opts.play_success_sound !== undefined
+        ? opts.play_success_sound
+        : "submit";
+    this.fail_sound =
+      opts.play_fail_sound !== undefined ? opts.play_fail_sound : "error";
+
     this.scan_api =
       opts.scan_api ||
       "surgishoperpnext.surgishoperpnext.api.barcode.scan_barcode";
@@ -66,7 +67,9 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     if (window.surgishop && window.surgishop.GS1Parser) {
       return window.surgishop.GS1Parser.parse(gs1_string);
     } else {
-      console.error('🏥 GS1Parser not loaded! Make sure gs1-utils.js is included.');
+      console.error(
+        "🏥 GS1Parser not loaded! Make sure gs1-utils.js is included."
+      );
       return null;
     }
   }
@@ -159,7 +162,9 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 
       // Handle item responses (with item_code)
       if (!data.item_code) {
-        console.warn("🏥 SurgiShopERPNext: No item_code in response, treating as error");
+        console.warn(
+          "🏥 SurgiShopERPNext: No item_code in response, treating as error"
+        );
         this.show_alert("No item found for this barcode", "red");
         this.clean_up();
         this.play_fail_sound();
@@ -186,25 +191,54 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   }
 
   handle_warehouse_scan(warehouse_name) {
-    console.log(`🏥 SurgiShopERPNext: Handling warehouse scan: ${warehouse_name}`);
-    
+    console.log(
+      `🏥 SurgiShopERPNext: Handling warehouse scan: ${warehouse_name}`
+    );
+
     // Set the warehouse on the document if there's a set_warehouse field
     if (frappe.meta.has_field(this.frm.doctype, "set_warehouse")) {
-      frappe.model.set_value(this.frm.doctype, this.frm.doc.name, "set_warehouse", warehouse_name);
-      console.log(`🏥 SurgiShopERPNext: Set document warehouse to: ${warehouse_name}`);
+      frappe.model.set_value(
+        this.frm.doctype,
+        this.frm.doc.name,
+        "set_warehouse",
+        warehouse_name
+      );
+      console.log(
+        `🏥 SurgiShopERPNext: Set document warehouse to: ${warehouse_name}`
+      );
     }
-    
+
     // Store the last scanned warehouse if the field exists
     if (this.has_last_scanned_warehouse) {
-      frappe.model.set_value(this.frm.doctype, this.frm.doc.name, "last_scanned_warehouse", warehouse_name);
-      console.log(`🏥 SurgiShopERPNext: Stored last scanned warehouse: ${warehouse_name}`);
+      frappe.model.set_value(
+        this.frm.doctype,
+        this.frm.doc.name,
+        "last_scanned_warehouse",
+        warehouse_name
+      );
+      console.log(
+        `🏥 SurgiShopERPNext: Stored last scanned warehouse: ${warehouse_name}`
+      );
     }
-    
+
     // Show confirmation message
     this.show_alert(`Warehouse set to: ${warehouse_name}`, "green", 3);
-    
+
     // Refresh the form to update any warehouse-dependent fields
     this.frm.refresh_fields();
+    
+    // IMPORTANT: Clear any existing row warehouse fields to force new row creation
+    // This ensures that when we scan an item after changing warehouse, it creates a new row
+    const warehouse_field = this.get_warehouse_field();
+    if (warehouse_field && frappe.meta.has_field(this.frm.doctype, this.items_table_name)) {
+      const items = this.frm.doc[this.items_table_name] || [];
+      items.forEach((row, index) => {
+        if (row[warehouse_field]) {
+          console.log(`🏥 SurgiShopERPNext: Clearing warehouse from existing row ${index + 1} to force new row creation`);
+          frappe.model.set_value(row.doctype, row.name, warehouse_field, "");
+        }
+      });
+    }
   }
 
   gs1_api_call(gs1_data, callback) {
@@ -290,15 +324,27 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         default_warehouse
       );
       const is_new_row = row && row.item_code ? false : true;
-      
+
       // Log warehouse-specific behavior
       if (is_new_row && item_code) {
-        const current_warehouse = this.frm.doc.last_scanned_warehouse || this.frm.doc.set_warehouse || default_warehouse;
-        console.log(`🏥 SurgiShopERPNext: Creating new row for item ${item_code} in warehouse ${current_warehouse}`);
-        console.log(`🏥 Debug - Reason: No matching row found with same warehouse`);
+        const current_warehouse =
+          this.frm.doc.last_scanned_warehouse ||
+          this.frm.doc.set_warehouse ||
+          default_warehouse;
+        console.log(
+          `🏥 SurgiShopERPNext: Creating new row for item ${item_code} in warehouse ${current_warehouse}`
+        );
+        console.log(
+          `🏥 Debug - Reason: No matching row found with same warehouse`
+        );
       } else if (!is_new_row && item_code) {
-        const current_warehouse = this.frm.doc.last_scanned_warehouse || this.frm.doc.set_warehouse || default_warehouse;
-        console.log(`🏥 SurgiShopERPNext: Incrementing existing row for item ${item_code} in warehouse ${current_warehouse}`);
+        const current_warehouse =
+          this.frm.doc.last_scanned_warehouse ||
+          this.frm.doc.set_warehouse ||
+          default_warehouse;
+        console.log(
+          `🏥 SurgiShopERPNext: Incrementing existing row for item ${item_code} in warehouse ${current_warehouse}`
+        );
       }
 
       if (!row) {
@@ -457,8 +503,13 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   }
 
   async set_batch_expiry_date(row, batch_expiry_date) {
-    if (batch_expiry_date && frappe.meta.has_field(row.doctype, this.batch_expiry_date_field)) {
-      console.log(`🏥 SurgiShopERPNext: Setting batch expiry date: ${batch_expiry_date}`);
+    if (
+      batch_expiry_date &&
+      frappe.meta.has_field(row.doctype, this.batch_expiry_date_field)
+    ) {
+      console.log(
+        `🏥 SurgiShopERPNext: Setting batch expiry date: ${batch_expiry_date}`
+      );
       await frappe.model.set_value(
         row.doctype,
         row.name,
@@ -512,7 +563,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       this.show_alert(`Row #${idx}: Qty increased by ${qty}`, "green");
     } else {
       const current_warehouse = this.frm.doc.last_scanned_warehouse;
-      const warehouse_msg = current_warehouse ? ` in ${current_warehouse}` : '';
+      const warehouse_msg = current_warehouse ? ` in ${current_warehouse}` : "";
       this.show_alert(`Row #${idx}: Item added${warehouse_msg}`, "green");
     }
   }
@@ -548,16 +599,20 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     const has_warehouse_field =
       warehouse_field &&
       frappe.meta.has_field(cur_grid.doctype, warehouse_field);
-    
+
     // Get warehouse from multiple sources
     const warehouse = has_warehouse_field
-      ? this.frm.doc.last_scanned_warehouse || 
-        this.frm.doc.set_warehouse || 
+      ? this.frm.doc.last_scanned_warehouse ||
+        this.frm.doc.set_warehouse ||
         default_warehouse
       : null;
-      
-    console.log(`🏥 Debug - warehouse_field: ${warehouse_field}, has_warehouse_field: ${has_warehouse_field}, warehouse: ${warehouse}`);
-    console.log(`🏥 Debug - last_scanned_warehouse: ${this.frm.doc.last_scanned_warehouse}, set_warehouse: ${this.frm.doc.set_warehouse}`);
+
+    console.log(
+      `🏥 Debug - warehouse_field: ${warehouse_field}, has_warehouse_field: ${has_warehouse_field}, warehouse: ${warehouse}`
+    );
+    console.log(
+      `🏥 Debug - last_scanned_warehouse: ${this.frm.doc.last_scanned_warehouse}, set_warehouse: ${this.frm.doc.set_warehouse}`
+    );
 
     const matching_row = (row) => {
       const item_match = row.item_code == item_code;
@@ -574,9 +629,11 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       if (has_warehouse_field && warehouse_field) {
         const current_warehouse = warehouse || null;
         const existing_warehouse = row[warehouse_field] || null;
-        
-        console.log(`🏥 Debug - Row ${row.idx} warehouse check: current="${current_warehouse}", existing="${existing_warehouse}"`);
-        
+
+        console.log(
+          `🏥 Debug - Row ${row.idx} warehouse check: current="${current_warehouse}", existing="${existing_warehouse}"`
+        );
+
         if (current_warehouse && existing_warehouse) {
           // Both have warehouses - must match exactly
           warehouse_match = current_warehouse === existing_warehouse;
@@ -584,11 +641,15 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         } else if (current_warehouse && !existing_warehouse) {
           // Current scan has warehouse, existing row doesn't - don't match
           warehouse_match = false;
-          console.log(`🏥 Debug - Current has warehouse, existing doesn't: ${warehouse_match}`);
+          console.log(
+            `🏥 Debug - Current has warehouse, existing doesn't: ${warehouse_match}`
+          );
         } else if (!current_warehouse && existing_warehouse) {
           // Current scan has no warehouse, existing row has one - don't match
           warehouse_match = false;
-          console.log(`🏥 Debug - Current has no warehouse, existing does: ${warehouse_match}`);
+          console.log(
+            `🏥 Debug - Current has no warehouse, existing does: ${warehouse_match}`
+          );
         } else {
           // Both have no warehouse - match
           warehouse_match = true;
@@ -596,20 +657,28 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         }
       }
 
-      const matches = (
+      const matches =
         item_match &&
         uom_match &&
         warehouse_match &&
         !item_scanned &&
         (!is_batch_no_scan || batch_match) &&
-        (!check_max_qty || qty_in_limit)
-      );
-      
+        (!check_max_qty || qty_in_limit);
+
       if (item_match && !matches) {
-        console.log(`🏥 Debug - Row ${row.idx} item matches but not selected:`, {
-          item_match, uom_match, warehouse_match, item_scanned, batch_match, qty_in_limit,
-          current_warehouse: warehouse, existing_warehouse: row[warehouse_field]
-        });
+        console.log(
+          `🏥 Debug - Row ${row.idx} item matches but not selected:`,
+          {
+            item_match,
+            uom_match,
+            warehouse_match,
+            item_scanned,
+            batch_match,
+            qty_in_limit,
+            current_warehouse: warehouse,
+            existing_warehouse: row[warehouse_field],
+          }
+        );
       }
 
       return matches;
