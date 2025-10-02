@@ -120,9 +120,12 @@ surgishop.GS1Parser = class GS1Parser {
 						const prevChar = i > 0 ? gs1_string[i - 1] : ''
 						const isAtFieldBoundary = !prevChar.match(/[a-zA-Z0-9]/)
 						
+						console.log(`🏥 Debug AI Detection: pos=${pos}, i=${i}, potentialAI2="${potentialAI2}", potentialAI3="${potentialAI3}", isAtReasonablePosition=${isAtReasonablePosition}, prevChar="${prevChar}", isAtFieldBoundary=${isAtFieldBoundary}`)
+						
 						if ((surgishop.GS1_AI_DEFINITIONS[potentialAI3]) ||
 						    (surgishop.GS1_AI_DEFINITIONS[potentialAI2] && 
 						     (isAtReasonablePosition || isAtFieldBoundary))) {
+							console.log(`🏥 Debug: Found potential AI "${potentialAI2 || potentialAI3}" at position ${i}, ending field at ${i}`)
 							endPos = i
 							foundNextAI = true
 							break
