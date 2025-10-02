@@ -105,12 +105,24 @@ surgishop.GS1Parser = class GS1Parser {
 				// Scan ahead looking for the next AI
 				for (let i = pos; i < gs1_string.length; i++) {
 					// Check if we've hit a potential AI (2 or 3 digits)
+					// But be more careful - only consider it an AI if it's at a reasonable position
+					// and not obviously part of the current field
 					if (i > pos) {
 						const potentialAI2 = gs1_string.substr(i, 2)
 						const potentialAI3 = gs1_string.substr(i, 3)
 						
-						if (surgishop.GS1_AI_DEFINITIONS[potentialAI2] || 
-						    surgishop.GS1_AI_DEFINITIONS[potentialAI3]) {
+						// For variable-length fields, be more conservative about AI detection
+						// Only consider it an AI if:
+						// 1. It's at least 2 characters from the start of the current field
+						// 2. The previous character is not alphanumeric (suggesting field boundary)
+						// 3. OR it's a 3-digit AI (less likely to be false positive)
+						const isAtReasonablePosition = (i - pos) >= 2
+						const prevChar = i > 0 ? gs1_string[i - 1] : ''
+						const isAtFieldBoundary = !prevChar.match(/[a-zA-Z0-9]/)
+						
+						if ((surgishop.GS1_AI_DEFINITIONS[potentialAI3]) ||
+						    (surgishop.GS1_AI_DEFINITIONS[potentialAI2] && 
+						     (isAtReasonablePosition || isAtFieldBoundary))) {
 							endPos = i
 							foundNextAI = true
 							break
