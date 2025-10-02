@@ -144,12 +144,13 @@ surgishop.GS1Parser = class GS1Parser {
 				pos += length
 			}
 
-			// Validate data type
+			// Validate data type - but be more tolerant for non-standard formats
 			if (aiDef.type === 'numeric' && !data.match(/^\d+$/)) {
 				console.log(
-					`🏥 GS1 Parse Failed: AI ${ai} (${aiDef.name}) should be numeric, got "${data}"`
+					`🏥 GS1 Parse Warning: AI ${ai} (${aiDef.name}) should be numeric, got "${data}" - continuing anyway`
 				)
-				return null
+				// Don't return null, just log a warning and continue
+				// This handles non-standard barcodes that might have custom data
 			}
 
 			// Store the parsed value using the AI name
