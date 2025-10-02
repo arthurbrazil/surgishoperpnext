@@ -23,7 +23,7 @@ surgishop.GS1_AI_DEFINITIONS = {
 	'01': { name: 'GTIN', length: 14, type: 'numeric' },
 	'10': { name: 'LOT', length: 'variable', maxLength: 20, type: 'alphanumeric' },
 	'11': { name: 'PROD_DATE', length: 6, type: 'numeric' },
-	'13': { name: 'PACK_DATE', length: 6, type: 'numeric' },
+	// '13': { name: 'PACK_DATE', length: 6, type: 'numeric' }, // REMOVED - not used in your barcodes
 	'15': { name: 'BEST_BEFORE', length: 6, type: 'numeric' },
 	'17': { name: 'EXPIRY', length: 6, type: 'numeric' },
 	'21': { name: 'SERIAL', length: 'variable', maxLength: 20, type: 'alphanumeric' },
