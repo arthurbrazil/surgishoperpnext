@@ -143,23 +143,168 @@ surgishop.CustomSerialBatchPackageSelector = class CustomSerialBatchPackageSelec
 };
 
 // Override the default selector in relevant forms
-frappe.ui.form.on("Stock Entry Detail", {
-  // Example for Stock Entry items
-  item_code: function (frm, cdt, cdn) {
-    const row = locals[cdt][cdn];
-    if (row.use_serial_batch_fields) {
-      // Override the selector call
-      frm._original_get_batch_qty = frm.get_batch_qty;
-      frm.get_batch_qty = function () {
-        // Use custom selector
-        new surgishop.CustomSerialBatchPackageSelector({
-          frm: frm,
-          item: row,
-          // other opts
-        });
-      };
+const doctypes_to_override = [
+  "Stock Entry Detail",
+  "Purchase Receipt Item", 
+  "Purchase Invoice Item",
+  "Sales Invoice Item",
+  "Delivery Note Item",
+  "Stock Reconciliation Item"
+];
+
+// Function to override the serial/batch selector for a given doctype
+function override_serial_batch_selector(doctype) {
+  frappe.ui.form.on(doctype, {
+    refresh: function(frm, cdt, cdn) {
+      // Override the get_serial_batch_bundle function if it exists
+      if (frm.get_serial_batch_bundle && !frm._original_get_serial_batch_bundle) {
+        frm._original_get_serial_batch_bundle = frm.get_serial_batch_bundle;
+        frm.get_serial_batch_bundle = function(cdt, cdn) {
+          const row = locals[cdt][cdn];
+          if (row && (row.has_serial_no || row.has_batch_no)) {
+            console.log(`🏥 SurgiShopERPNext: Overriding get_serial_batch_bundle for ${doctype} - Item: ${row.item_code}`);
+            new surgishop.CustomSerialBatchPackageSelector({
+              frm: frm,
+              item: row,
+              doctype: doctype,
+              cdt: cdt,
+              cdn: cdn
+            });
+          } else {
+            // Call original function if no serial/batch fields
+            frm._original_get_serial_batch_bundle(cdt, cdn);
+          }
+        };
+      }
+      
+      // Also override get_batch_qty if it exists
+      if (frm.get_batch_qty && !frm._original_get_batch_qty) {
+        frm._original_get_batch_qty = frm.get_batch_qty;
+        frm.get_batch_qty = function(cdt, cdn) {
+          const row = locals[cdt][cdn];
+          if (row && (row.has_serial_no || row.has_batch_no)) {
+            console.log(`🏥 SurgiShopERPNext: Overriding get_batch_qty for ${doctype} - Item: ${row.item_code}`);
+            new surgishop.CustomSerialBatchPackageSelector({
+              frm: frm,
+              item: row,
+              doctype: doctype,
+              cdt: cdt,
+              cdn: cdn
+            });
+          } else {
+            // Call original function if no serial/batch fields
+            frm._original_get_batch_qty(cdt, cdn);
+          }
+        };
+      }
     }
-  },
+  });
+}
+
+// Apply overrides to all relevant doctypes
+doctypes_to_override.forEach(override_serial_batch_selector);
+
+// Also override at the form level for main doctypes
+const main_doctypes = [
+  "Stock Entry",
+  "Purchase Receipt", 
+  "Purchase Invoice",
+  "Sales Invoice",
+  "Delivery Note",
+  "Stock Reconciliation"
+];
+
+main_doctypes.forEach(doctype => {
+  frappe.ui.form.on(doctype, {
+    refresh: function(frm) {
+      // Override the get_serial_batch_bundle function for the main form
+      if (frm.get_serial_batch_bundle && !frm._original_get_serial_batch_bundle) {
+        frm._original_get_serial_batch_bundle = frm.get_serial_batch_bundle;
+        frm.get_serial_batch_bundle = function(cdt, cdn) {
+          const row = locals[cdt][cdn];
+          if (row && (row.has_serial_no || row.has_batch_no)) {
+            console.log(`🏥 SurgiShopERPNext: Overriding get_serial_batch_bundle for ${doctype} - Item: ${row.item_code}`);
+            new surgishop.CustomSerialBatchPackageSelector({
+              frm: frm,
+              item: row,
+              doctype: doctype,
+              cdt: cdt,
+              cdn: cdn
+            });
+          } else {
+            // Call original function if no serial/batch fields
+            frm._original_get_serial_batch_bundle(cdt, cdn);
+          }
+        };
+      }
+    }
+  });
 });
 
-// Add similar overrides for other doctypes like Purchase Receipt Item, etc.
+// Additional approach: Override the button click handlers directly
+frappe.router.on("change", () => {
+  const current_route = frappe.get_route();
+  if (current_route && current_route[0] === "Form") {
+    const doctype = current_route[1];
+    if (main_doctypes.includes(doctype)) {
+      // Wait for the form to be ready
+      setTimeout(() => {
+        const frm = cur_frm;
+        if (frm && frm.fields_dict) {
+          // Override button click handlers for serial/batch buttons
+          override_serial_batch_buttons(frm, doctype);
+        }
+      }, 1000);
+    }
+  }
+});
+
+// Function to override the actual button click handlers
+function override_serial_batch_buttons(frm, doctype) {
+  // Find all "Add Serial / Batch No" buttons and override their click handlers
+  $(document).on('click', 'button, .btn, [role="button"]', function(e) {
+    const $btn = $(this);
+    const btnText = $btn.text().trim();
+    const fieldname = $btn.attr('data-fieldname');
+    const title = $btn.attr('title') || '';
+    
+    // Check if this is a serial/batch button by text content
+    const isSerialBatchButton = btnText.includes('Add Serial') || 
+                               btnText.includes('Add Batch') ||
+                               btnText.includes('Serial / Batch') ||
+                               btnText.includes('Batch No') ||
+                               btnText.includes('Serial No') ||
+                               (fieldname && (fieldname.includes('serial') || fieldname.includes('batch'))) ||
+                               title.includes('Serial') || 
+                               title.includes('Batch');
+    
+    if (isSerialBatchButton) {
+      console.log(`🏥 SurgiShopERPNext: Detected serial/batch button click: "${btnText}"`);
+      
+      // Find the parent row
+      const $row = $btn.closest('[data-doctype]');
+      if ($row.length) {
+        const row_doctype = $row.attr('data-doctype');
+        const row_name = $row.attr('data-name');
+        
+        if (row_name) {
+          const row = locals[row_doctype][row_name];
+          if (row && (row.has_serial_no || row.has_batch_no)) {
+            console.log(`🏥 SurgiShopERPNext: Button click override for ${doctype} - Item: ${row.item_code}`);
+            e.preventDefault();
+            e.stopPropagation();
+            
+            new surgishop.CustomSerialBatchPackageSelector({
+              frm: frm,
+              item: row,
+              doctype: doctype,
+              cdt: row_doctype,
+              cdn: row_name
+            });
+            return false;
+          }
+        }
+      }
+    }
+  });
+}
