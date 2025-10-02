@@ -147,47 +147,40 @@ surgishop.CustomSerialBatchPackageSelector = class CustomSerialBatchPackageSelec
   }
 };
 
-// Global item code storage
+// Store current item code on button click
 let currentItemCode = '';
 
-// Click handler to capture item code on button click
-$(document).on('click', 'button, .btn', function(e) {
+$(document).on('click', '.grid-row .btn', function(e) {
   const $btn = $(this);
   const btnText = $btn.text().trim();
-  
-  if (btnText === 'Add Batch Nos' || btnText.includes('Add Batch') || btnText.includes('Add Serial')) {
-    // Find parent row and get item code
+  if (btnText === 'Add Serial / Batch No' || btnText === 'Add Batch Nos') {
     const $row = $btn.closest('.grid-row');
-    if ($row.length) {
-      const itemCode = $row.find('[data-fieldname="item_code"] .grid-static-col').text().trim();
-      if (itemCode) {
-        currentItemCode = itemCode;
-        console.log(`🏥 Detected button click - Stored item code: ${currentItemCode}`);
-      }
+    const itemCode = $row.find('.grid-static-col[data-fieldname="item_code"]').text().trim();
+    if (itemCode) {
+      currentItemCode = itemCode;
+      console.log(`🏥 Stored item code from click: ${currentItemCode}`);
     }
   }
 });
 
-// MutationObserver to modify dialog title
+// Observer to modify title when dialog opens
 const observer = new MutationObserver((mutations) => {
   mutations.forEach((mutation) => {
-    if (mutation.addedNodes) {
-      mutation.addedNodes.forEach((node) => {
-        if (node.classList && node.classList.contains('modal')) {
-          const titleElem = node.querySelector('.modal-title');
-          if (titleElem && titleElem.textContent.includes('Add Batch Nos') && currentItemCode) {
-            titleElem.textContent = `Add Batch Nos - Item: ${currentItemCode}`;
-            console.log(`🏥 Modified dialog title to: ${titleElem.textContent}`);
-            currentItemCode = ''; // Clear after use
-          }
+    mutation.addedNodes.forEach((node) => {
+      if (node.nodeType === 1 && node.classList.contains('modal')) {
+        const titleElem = node.querySelector('.modal-title');
+        if (titleElem && titleElem.textContent.includes('Add Batch Nos') && currentItemCode) {
+          titleElem.textContent += ` - Item: ${currentItemCode}`;
+          console.log(`🏥 Updated title to: ${titleElem.textContent}`);
+          currentItemCode = ''; // Reset
         }
-      });
-    }
+      }
+    });
   });
 });
-
 observer.observe(document.body, { childList: true, subtree: true });
-console.log('🏥 Title modifier setup complete');
+
+console.log('🏥 Dialog title modifier initialized');
 
 // Add MutationObserver fallback to detect dialog opening
 const observer = new MutationObserver((mutations) => {
