@@ -13,11 +13,30 @@ surgishop.CustomSerialBatchPackageSelector = class CustomSerialBatchPackageSelec
     super(opts);
     this.gs1_parser_api =
       "surgishoperpnext.surgishoperpnext.api.gs1_parser.parse_gs1_and_get_batch";
+    
+    // Log item information for debugging
+    if (this.item) {
+      console.log(`🏥 SurgiShopERPNext: Serial/Batch Selector opened for item: ${this.item.item_code}`);
+    }
   }
 
-  // Override to add scan field
+  // Override to add scan field and item number display
   prepare_dialog() {
     super.prepare_dialog();
+
+    // Add item number display field at the very top
+    const itemCode = this.item ? this.item.item_code : "Unknown Item";
+    const itemName = this.item ? this.item.item_name : "";
+    const displayValue = itemName ? `${itemCode} - ${itemName}` : itemCode;
+    
+    this.dialog.fields_dict.item_display = new frappe.ui.Field({
+      label: __("Item"),
+      fieldname: "item_display",
+      fieldtype: "Data",
+      options: "",
+      read_only: 1,
+      default: displayValue,
+    });
 
     // Add scan field to dialog
     this.dialog.fields_dict.scan_gs1 = new frappe.ui.Field({
@@ -28,9 +47,19 @@ surgishop.CustomSerialBatchPackageSelector = class CustomSerialBatchPackageSelec
       change: () => this.process_gs1_scan(),
     });
 
-    // Insert scan field at the top
-    this.dialog.fields.splice(0, 0, this.dialog.fields_dict.scan_gs1.df);
+    // Insert fields at the top (item display first, then scan field)
+    this.dialog.fields.splice(0, 0, this.dialog.fields_dict.item_display.df);
+    this.dialog.fields.splice(1, 0, this.dialog.fields_dict.scan_gs1.df);
     this.dialog.refresh_fields();
+    
+    // Update dialog title to include item code
+    if (this.item && this.item.item_code) {
+      const title = this.item.item_name 
+        ? __("Add Serial / Batch No - {0} ({1})", [this.item.item_code, this.item.item_name])
+        : __("Add Serial / Batch No - {0}", [this.item.item_code]);
+      this.dialog.set_title(title);
+    }
+    
     this.dialog.fields_dict.scan_gs1.$input.focus();
   }
 
@@ -105,8 +134,9 @@ surgishop.CustomSerialBatchPackageSelector = class CustomSerialBatchPackageSelec
     // Add more fields as needed (e.g., qty=1)
     frappe.model.set_value(row.doctype, row.name, "qty", 1);
 
+    const itemCode = this.item ? this.item.item_code : "Unknown Item";
     frappe.show_alert({
-      message: __("Batch added from GS1 scan"),
+      message: __("Batch added from GS1 scan for Item: {0}", [itemCode]),
       indicator: "green",
     });
   }

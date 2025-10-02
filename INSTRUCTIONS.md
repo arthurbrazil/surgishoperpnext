@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.1.3
+- **Current Version**: 0.1.19
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,29 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.1.19 (Serial/Batch Dialog Enhancement)
+**Enhanced Serial/Batch Dialog with Item Context Display**
+
+#### 🎯 New Features
+- **Item Code Display** - Dialog now shows the item code and name at the top
+- **Enhanced Dialog Title** - Title includes item code and name for better context
+- **Read-Only Item Field** - Displays "ITEM-CODE - Item Name" format for clarity
+- **Context-Aware Messages** - Success messages include item code for reference
+
+#### 🔧 Dialog Improvements
+- **Field Ordering** - Item display field appears first, followed by GS1 scan field
+- **Better UX** - Users can easily identify which item they're working with
+- **Consistent Context** - All dialog interactions maintain item context
+- **Debug Logging** - Added console logging for troubleshooting
+
+#### ✅ User Experience
+- ✓ **Clear Item Identification** - No confusion about which item is being processed
+- ✓ **Enhanced Workflow** - Better context when adding serial/batch numbers
+- ✓ **Professional Interface** - More informative and user-friendly dialog
+- ✓ **Consistent Messaging** - All feedback includes item context
+
+---
 
 ### Version 0.1.3 (Sound Feedback Enhancement)
 **Added Audio Feedback for Barcode Scanning**
