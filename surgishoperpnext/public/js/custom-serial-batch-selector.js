@@ -157,32 +157,37 @@ function apply_custom_selector_override() {
     
     erpnext.SerialBatchPackageSelector = class extends OriginalSerialBatchPackageSelector {
       constructor(opts) {
-        console.log('🏥 Custom SerialBatchPackageSelector instantiated with opts:', opts);
+        console.log('🏥 Custom constructor called! Opts:', opts);
         super(opts);
         
-        // Set custom title immediately
-        if (this.dialog && this.item && this.item.item_code) {
-          const title = this.item.item_name 
-            ? `Add Batch Nos - Item: ${this.item.item_code} (${this.item.item_name})`
-            : `Add Batch Nos - Item: ${this.item.item_code}`;
+        // Set custom title
+        if (this.dialog && opts.item && opts.item.item_code) {
+          const title = opts.item.item_name 
+            ? `Add Batch Nos - Item: ${opts.item.item_code} (${opts.item.item_name})`
+            : `Add Batch Nos - Item: ${opts.item.item_code}`;
           this.dialog.set_title(title);
-          console.log('🏥 Set custom dialog title:', title);
+          console.log('🏥 Set custom title:', title);
         }
       }
-      
-      // Add other methods like prepare_dialog if needed
     };
     
-    // Stop the interval once overridden
+    // Fallback: Patch prototype if needed
+    erpnext.SerialBatchPackageSelector.prototype.customLog = function() {
+      console.log('🏥 Prototype patched!');
+    };
+    
+    // Stop the interval
     clearInterval(overrideInterval);
+    console.log('🏥 Interval cleared - no more repeats');
   } else {
     console.log('🏥 Waiting for ERPNext to load...');
   }
 }
 
-// Apply immediately and on interval
+// Apply immediately and on interval (up to 10 seconds max)
 apply_custom_selector_override();
 const overrideInterval = setInterval(apply_custom_selector_override, 500);
+setTimeout(() => clearInterval(overrideInterval), 10000); // Safety stop after 10s
 
 // Global button override setup
 function setup_global_button_overrides() {
