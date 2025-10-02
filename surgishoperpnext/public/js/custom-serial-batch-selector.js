@@ -1,6 +1,11 @@
 // surgishoperpnext/public/js/custom-serial-batch-selector.js
 // Custom Serial Batch Selector with GS1 Scanning Support
 
+console.log(
+  `%c🏥 SurgiShopERPNext: Custom Serial Batch Selector loaded!`,
+  "color: #1E88E5; font-weight: bold;"
+);
+
 // Namespace
 if (typeof window.surgishop === "undefined") {
   window.surgishop = {};
@@ -269,6 +274,11 @@ $(document).ready(() => {
   // Also try to override the actual ERPNext functions directly
   override_erpnext_functions();
 });
+
+// Immediate execution for debugging
+console.log('🏥 SurgiShopERPNext: Custom Serial Batch Selector script executing immediately');
+console.log('🏥 SurgiShopERPNext: erpnext object available:', typeof erpnext !== 'undefined');
+console.log('🏥 SurgiShopERPNext: frappe object available:', typeof frappe !== 'undefined');
 
 // Override ERPNext's actual serial/batch functions
 function override_erpnext_functions() {

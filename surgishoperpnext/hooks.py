@@ -28,8 +28,9 @@ app_license = "mit"
 # app_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"
 # Load gs1-utils.js FIRST (custom-barcode-scanner.js depends on it)
 app_include_js = [
-	"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.21",
-	"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.21"
+	"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.22",
+	"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.22",
+	"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.22"
 ]
 
 # include js, css files in header of web template
@@ -53,17 +54,40 @@ app_include_js = [
 doctype_js = {
 	"Stock Entry": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
-		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.21",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.21",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.21"
+		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.22"
 	],
 	"Purchase Receipt": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
-		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.21",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.21",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.21"
+		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.22"
 	],
-	# Add for other doctypes as needed
+	"Purchase Invoice": [
+		"/assets/surgishoperpnext/js/gs1-parser.min.js",
+		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.22"
+	],
+	"Sales Invoice": [
+		"/assets/surgishoperpnext/js/gs1-parser.min.js",
+		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.22"
+	],
+	"Delivery Note": [
+		"/assets/surgishoperpnext/js/gs1-parser.min.js",
+		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.22"
+	],
+	"Stock Reconciliation": [
+		"/assets/surgishoperpnext/js/gs1-parser.min.js",
+		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.1.22",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.1.22"
+	],
 }
 
 # include custom scss in every website theme (without file extension ".scss")
