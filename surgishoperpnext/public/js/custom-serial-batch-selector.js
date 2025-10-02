@@ -150,8 +150,31 @@ surgishop.CustomSerialBatchPackageSelector = class CustomSerialBatchPackageSelec
 // Simplify to primary class override with timing safety
 function apply_custom_selector_override() {
   if (typeof erpnext !== 'undefined' && erpnext.SerialBatchPackageSelector) {
-    // Override code here
     console.log('🏥 Custom override applied successfully');
+    
+    // Full class extension
+    const OriginalSerialBatchPackageSelector = erpnext.SerialBatchPackageSelector;
+    
+    erpnext.SerialBatchPackageSelector = class extends OriginalSerialBatchPackageSelector {
+      constructor(opts) {
+        console.log('🏥 Custom SerialBatchPackageSelector instantiated with opts:', opts);
+        super(opts);
+        
+        // Set custom title immediately
+        if (this.dialog && this.item && this.item.item_code) {
+          const title = this.item.item_name 
+            ? `Add Batch Nos - Item: ${this.item.item_code} (${this.item.item_name})`
+            : `Add Batch Nos - Item: ${this.item.item_code}`;
+          this.dialog.set_title(title);
+          console.log('🏥 Set custom dialog title:', title);
+        }
+      }
+      
+      // Add other methods like prepare_dialog if needed
+    };
+    
+    // Stop the interval once overridden
+    clearInterval(overrideInterval);
   } else {
     console.log('🏥 Waiting for ERPNext to load...');
   }
