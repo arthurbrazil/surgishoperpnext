@@ -147,47 +147,47 @@ surgishop.CustomSerialBatchPackageSelector = class CustomSerialBatchPackageSelec
   }
 };
 
-// Simplify to primary class override with timing safety
-function apply_custom_selector_override() {
-  if (typeof erpnext !== 'undefined' && erpnext.SerialBatchPackageSelector) {
-    console.log('🏥 Custom override applied successfully');
-    
-    // Full class extension
-    const OriginalSerialBatchPackageSelector = erpnext.SerialBatchPackageSelector;
-    
-    erpnext.SerialBatchPackageSelector = class extends OriginalSerialBatchPackageSelector {
-      constructor(opts) {
-        console.log('🏥 Custom constructor called! Opts:', opts);
-        super(opts);
-        
-        // Set custom title
-        if (this.dialog && opts.item && opts.item.item_code) {
-          const title = opts.item.item_name 
-            ? `Add Batch Nos - Item: ${opts.item.item_code} (${opts.item.item_name})`
-            : `Add Batch Nos - Item: ${opts.item.item_code}`;
-          this.dialog.set_title(title);
-          console.log('🏥 Set custom title:', title);
-        }
-      }
-    };
-    
-    // Fallback: Patch prototype if needed
-    erpnext.SerialBatchPackageSelector.prototype.customLog = function() {
-      console.log('🏥 Prototype patched!');
-    };
-    
-    // Stop the interval
-    clearInterval(overrideInterval);
-    console.log('🏥 Interval cleared - no more repeats');
-  } else {
-    console.log('🏥 Waiting for ERPNext to load...');
-  }
-}
+// Global item code storage
+let currentItemCode = '';
 
-// Apply immediately and on interval (up to 10 seconds max)
-apply_custom_selector_override();
-const overrideInterval = setInterval(apply_custom_selector_override, 500);
-setTimeout(() => clearInterval(overrideInterval), 10000);
+// Click handler to capture item code on button click
+$(document).on('click', 'button, .btn', function(e) {
+  const $btn = $(this);
+  const btnText = $btn.text().trim();
+  
+  if (btnText === 'Add Batch Nos' || btnText.includes('Add Batch') || btnText.includes('Add Serial')) {
+    // Find parent row and get item code
+    const $row = $btn.closest('.grid-row');
+    if ($row.length) {
+      const itemCode = $row.find('[data-fieldname="item_code"] .grid-static-col').text().trim();
+      if (itemCode) {
+        currentItemCode = itemCode;
+        console.log(`🏥 Detected button click - Stored item code: ${currentItemCode}`);
+      }
+    }
+  }
+});
+
+// MutationObserver to modify dialog title
+const observer = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    if (mutation.addedNodes) {
+      mutation.addedNodes.forEach((node) => {
+        if (node.classList && node.classList.contains('modal')) {
+          const titleElem = node.querySelector('.modal-title');
+          if (titleElem && titleElem.textContent.includes('Add Batch Nos') && currentItemCode) {
+            titleElem.textContent = `Add Batch Nos - Item: ${currentItemCode}`;
+            console.log(`🏥 Modified dialog title to: ${titleElem.textContent}`);
+            currentItemCode = ''; // Clear after use
+          }
+        }
+      });
+    }
+  });
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
+console.log('🏥 Title modifier setup complete');
 
 // Add MutationObserver fallback to detect dialog opening
 const observer = new MutationObserver((mutations) => {
