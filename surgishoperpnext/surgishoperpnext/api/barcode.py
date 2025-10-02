@@ -39,23 +39,34 @@ def scan_barcode(search_value: str, ctx: dict | str | None = None) -> dict:
         frappe.logger().info(f"🏥 SurgiShopERPNext: Found serial no: {serial_no_data}")
         return _get_item_details(serial_no_data, ctx)
     
-    # Search batch no
-    batch_no_data = frappe.db.get_value(
-        "Batch",
-        search_value,
-        ["name as batch_no", "item as item_code"],
-        as_dict=True,
+    # Search batch no - but skip if this looks like a GS1 barcode
+    # GS1 barcodes start with AI 01 (GTIN) which is 14 digits after the "01" prefix
+    # So valid GS1 barcodes should be at least 16 characters and start with "01"
+    is_likely_gs1 = (
+        len(search_value) >= 16 and 
+        search_value.startswith("01") and 
+        search_value[2:16].isdigit()  # Next 14 chars should be digits (GTIN)
     )
-    if batch_no_data:
-        if frappe.get_cached_value("Item", batch_no_data.item_code, "has_serial_no"):
-            frappe.throw(
-                _(
-                    "Batch No {0} is linked with Item {1} which has serial no. Please scan serial no instead."
-                ).format(search_value, batch_no_data.item_code)
-            )
-        
-        frappe.logger().info(f"🏥 SurgiShopERPNext: Found batch no: {batch_no_data}")
-        return _get_item_details(batch_no_data, ctx)
+    
+    if not is_likely_gs1:
+        batch_no_data = frappe.db.get_value(
+            "Batch",
+            search_value,
+            ["name as batch_no", "item as item_code"],
+            as_dict=True,
+        )
+        if batch_no_data:
+            if frappe.get_cached_value("Item", batch_no_data.item_code, "has_serial_no"):
+                frappe.throw(
+                    _(
+                        "Batch No {0} is linked with Item {1} which has serial no. Please scan serial no instead."
+                    ).format(search_value, batch_no_data.item_code)
+                )
+            
+            frappe.logger().info(f"🏥 SurgiShopERPNext: Found batch no: {batch_no_data}")
+            return _get_item_details(batch_no_data, ctx)
+    else:
+        frappe.logger().info(f"🏥 SurgiShopERPNext: Skipping batch search for likely GS1 barcode: {search_value}")
     
     # Search warehouse
     warehouse = frappe.get_cached_value("Warehouse", search_value, ("name", "disabled"), as_dict=True)
