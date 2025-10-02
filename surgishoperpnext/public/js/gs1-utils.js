@@ -111,20 +111,21 @@ surgishop.GS1Parser = class GS1Parser {
 						const potentialAI2 = gs1_string.substr(i, 2)
 						const potentialAI3 = gs1_string.substr(i, 3)
 						
-						// For variable-length fields, be more conservative about AI detection
+						// For variable-length fields, be VERY conservative about AI detection
 						// Only consider it an AI if:
-						// 1. It's at least 2 characters from the start of the current field
+						// 1. It's at least 4 characters from the start of the current field (more conservative)
 						// 2. The previous character is not alphanumeric (suggesting field boundary)
 						// 3. OR it's a 3-digit AI (less likely to be false positive)
-						const isAtReasonablePosition = (i - pos) >= 2
+						const isAtReasonablePosition = (i - pos) >= 4  // Increased from 2 to 4
 						const prevChar = i > 0 ? gs1_string[i - 1] : ''
 						const isAtFieldBoundary = !prevChar.match(/[a-zA-Z0-9]/)
 						
 						console.log(`🏥 Debug AI Detection: pos=${pos}, i=${i}, potentialAI2="${potentialAI2}", potentialAI3="${potentialAI3}", isAtReasonablePosition=${isAtReasonablePosition}, prevChar="${prevChar}", isAtFieldBoundary=${isAtFieldBoundary}`)
 						
+						// Only detect 3-digit AIs immediately, or 2-digit AIs with strict conditions
 						if ((surgishop.GS1_AI_DEFINITIONS[potentialAI3]) ||
 						    (surgishop.GS1_AI_DEFINITIONS[potentialAI2] && 
-						     (isAtReasonablePosition || isAtFieldBoundary))) {
+						     (isAtReasonablePosition && isAtFieldBoundary))) {  // Both conditions must be true
 							console.log(`🏥 Debug: Found potential AI "${potentialAI2 || potentialAI3}" at position ${i}, ending field at ${i}`)
 							endPos = i
 							foundNextAI = true
