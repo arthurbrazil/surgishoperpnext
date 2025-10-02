@@ -187,7 +187,26 @@ function apply_custom_selector_override() {
 // Apply immediately and on interval (up to 10 seconds max)
 apply_custom_selector_override();
 const overrideInterval = setInterval(apply_custom_selector_override, 500);
-setTimeout(() => clearInterval(overrideInterval), 10000); // Safety stop after 10s
+setTimeout(() => clearInterval(overrideInterval), 10000);
+
+// Add MutationObserver fallback to detect dialog opening
+const observer = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    if (mutation.addedNodes) {
+      mutation.addedNodes.forEach((node) => {
+        if (node.classList && node.classList.contains('modal') && node.querySelector('.modal-title')) {
+          const titleElem = node.querySelector('.modal-title');
+          if (titleElem.textContent.includes('Add Batch Nos')) {
+            console.log('🏥 Dialog detected via MutationObserver');
+            // Modify title (replace with actual item number logic if available)
+            titleElem.textContent = 'Add Batch Nos - Item: 1951B'; // Placeholder; integrate with item context
+          }
+        }
+      });
+    }
+  });
+});
+observer.observe(document.body, { childList: true, subtree: true });
 
 // Global button override setup
 function setup_global_button_overrides() {
