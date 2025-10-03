@@ -62,7 +62,7 @@ if (erpnext.SerialBatchPackageSelector) {
                 )
               );
               scanField.set_value("");
-              frappe.ui.play_sound("error"); // Play error sound
+              frappe.utils.play_sound("error"); // Play error sound
               return;
             }
 
@@ -89,7 +89,7 @@ if (erpnext.SerialBatchPackageSelector) {
                     )
                   );
                   scanField.set_value("");
-                  frappe.ui.play_sound("error"); // Play error sound
+                  frappe.utils.play_sound("error"); // Play error sound
                   return;
                 }
 
@@ -114,61 +114,67 @@ if (erpnext.SerialBatchPackageSelector) {
                   return;
                 }
 
-                // Add to grid
-                const grid = this.dialog.fields_dict.entries.grid;
-                const newRowIdx = grid.add_new_row(); // Note: add_new_row() returns the index, not the row object
-                if (!newRowIdx) {
-                  console.error("🏥 Failed to add new row to grid");
-                  frappe.msgprint(__("Error adding new batch row"));
-                  frappe.ui.play_sound("error");
-                  scanField.set_value("");
-                  return;
-                }
+				// Add to grid using proper method
+				const grid = this.dialog.fields_dict.entries.grid;
+				
+				// Use frappe.model.add_child to properly add a row
+				const newRow = frappe.model.add_child(
+					this.dialog.doc,
+					grid.doctype,
+					'entries'
+				);
 
-                // Get the actual new row object from grid data
-                const newRow = grid.grid_rows[newRowIdx - 1].doc; // Indices are 1-based, so subtract 1
+				if (!newRow) {
+					console.error("🏥 Failed to add new row to grid");
+					frappe.msgprint(__("Error adding new batch row"));
+					frappe.utils.play_sound("error");
+					scanField.set_value("");
+					return;
+				}
 
-                frappe.run_serially([
-                  () =>
-                    frappe.model.set_value(
-                      newRow.doctype,
-                      newRow.name,
-                      "batch_no",
-                      batch
-                    ),
-                  () => {
-                    // Trigger onchange for batch_no to fetch expiry
-                    const batchField =
-                      newRow.__onchange && newRow.__onchange.batch_no;
-                    if (batchField) batchField();
-                    console.log(
-                      "🏥 Triggered batch_no onchange for expiry fetch"
-                    );
-                  },
-                  () =>
-                    frappe.model.set_value(
-                      newRow.doctype,
-                      newRow.name,
-                      "qty",
-                      1
-                    ),
-                  () => {
-                    grid.refresh();
-                    console.log(
-                      "🏥 Successfully added and set link for batch row:",
-                      batch
-                    );
-                    scanField.set_value("");
-                    frappe.ui.play_sound("submit"); // Play success sound
-                  },
-                ]);
+				console.log("🏥 Successfully added new row:", newRow);
+
+				frappe.run_serially([
+					() =>
+						frappe.model.set_value(
+							newRow.doctype,
+							newRow.name,
+							"batch_no",
+							batch
+						),
+					() => {
+						// Trigger onchange for batch_no to fetch expiry
+						const batchField =
+							newRow.__onchange && newRow.__onchange.batch_no;
+						if (batchField) batchField();
+						console.log(
+							"🏥 Triggered batch_no onchange for expiry fetch"
+						);
+					},
+					() =>
+						frappe.model.set_value(
+							newRow.doctype,
+							newRow.name,
+							"qty",
+							1
+						),
+					() => {
+						grid.refresh();
+						console.log(
+							"🏥 Successfully added and set link for batch row:",
+							batch
+						);
+						scanField.set_value("");
+						frappe.utils.play_sound("submit"); // Play success sound
+					},
+				]);
               },
             });
           })
           .catch((err) => {
             frappe.msgprint(__("Error fetching item details: " + err.message));
             scanField.set_value("");
-            frappe.ui.play_sound("error");
+            frappe.utils.play_sound("error");
           });
       };
     }
