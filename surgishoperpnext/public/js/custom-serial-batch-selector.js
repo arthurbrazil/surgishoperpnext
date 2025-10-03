@@ -240,4 +240,17 @@ const observer = new MutationObserver((mutations) => {
           titleElem.textContent.includes("Add Batch Nos") &&
           currentItemCode
         ) {
-          titleElem.textContent += ` - Item: ${currentItemCode}`
+          titleElem.textContent += ` - Item: ${currentItemCode}`;
+          console.log(
+            "🏥 Dialog opened and title updated to:",
+            titleElem.textContent
+          );
+          currentItemCode = ""; // Reset
+        }
+      }
+    });
+  });
+});
+observer.observe(document.body, { childList: true, subtree: true });
+
+console.log("🏥 Observer setup complete - waiting for dialog");
