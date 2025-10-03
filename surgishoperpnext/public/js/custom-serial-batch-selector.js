@@ -114,60 +114,39 @@ if (erpnext.SerialBatchPackageSelector) {
                   return;
                 }
 
-				// Add to grid using proper method
+				// Add to grid data directly (dialog grids work differently than form child tables)
 				const grid = this.dialog.fields_dict.entries.grid;
 				
-				// Use frappe.model.add_child to properly add a row
-				const newRow = frappe.model.add_child(
-					this.dialog.doc,
-					grid.doctype,
-					'entries'
-				);
+				// Create a new row object
+				const newRow = {
+					batch_no: batch,
+					qty: 1,
+					expiry_date: batchExpiry
+				};
 
-				if (!newRow) {
-					console.error("🏥 Failed to add new row to grid");
-					frappe.msgprint(__("Error adding new batch row"));
-					frappe.utils.play_sound("error");
-					scanField.set_value("");
-					return;
+				// Add to grid data
+				if (!grid.grid_rows) {
+					grid.grid_rows = [];
 				}
-
-				console.log("🏥 Successfully added new row:", newRow);
-
-				frappe.run_serially([
-					() =>
-						frappe.model.set_value(
-							newRow.doctype,
-							newRow.name,
-							"batch_no",
-							batch
-						),
-					() => {
-						// Trigger onchange for batch_no to fetch expiry
-						const batchField =
-							newRow.__onchange && newRow.__onchange.batch_no;
-						if (batchField) batchField();
-						console.log(
-							"🏥 Triggered batch_no onchange for expiry fetch"
-						);
-					},
-					() =>
-						frappe.model.set_value(
-							newRow.doctype,
-							newRow.name,
-							"qty",
-							1
-						),
-					() => {
-						grid.refresh();
-						console.log(
-							"🏥 Successfully added and set link for batch row:",
-							batch
-						);
-						scanField.set_value("");
-						frappe.utils.play_sound("submit"); // Play success sound
-					},
-				]);
+				
+				// Get the grid's data array
+				const gridData = grid.get_data ? grid.get_data() : [];
+				
+				// Add the new row to the data
+				gridData.push(newRow);
+				
+				// Set the grid data and refresh
+				if (grid.df && grid.df.data) {
+					grid.df.data = gridData;
+				}
+				
+				grid.refresh();
+				
+				console.log("🏥 Successfully added batch row:", newRow);
+				console.log("🏥 Grid data:", gridData);
+				
+				scanField.set_value("");
+				frappe.utils.play_sound("submit"); // Play success sound
               },
             });
           })
