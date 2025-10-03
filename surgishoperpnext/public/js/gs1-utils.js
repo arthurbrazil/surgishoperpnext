@@ -119,33 +119,35 @@ surgishop.GS1Parser = class GS1Parser {
             const potentialAI2 = gs1_string.substr(i, 2);
             const potentialAI3 = gs1_string.substr(i, 3);
 
-            // For variable-length fields, be VERY conservative about AI detection
-            // Only consider it an AI if:
-            // 1. It's at least 4 characters from the start of the current field (more conservative)
-            // 2. The previous character is not alphanumeric (suggesting field boundary)
-            // 3. OR it's a 3-digit AI (less likely to be false positive)
-            const isAtReasonablePosition = i - pos >= 4; // Increased from 2 to 4
+            // For variable-length fields, check for the next AI
+            // Priority: 3-digit AIs > 2-digit AIs
+            // For 2-digit AIs, we need some minimum distance to avoid false positives
+            const isAtMinDistance = i - pos >= 1; // At least 1 character into the field
             const prevChar = i > 0 ? gs1_string[i - 1] : "";
-            const isAtFieldBoundary = !prevChar.match(/[a-zA-Z0-9]/);
-
+            
             console.log(
-              `🏥 Debug AI Detection: pos=${pos}, i=${i}, potentialAI2="${potentialAI2}", potentialAI3="${potentialAI3}", isAtReasonablePosition=${isAtReasonablePosition}, prevChar="${prevChar}", isAtFieldBoundary=${isAtFieldBoundary}`
+              `🏥 Debug AI Detection: pos=${pos}, i=${i}, potentialAI2="${potentialAI2}", potentialAI3="${potentialAI3}", isAtMinDistance=${isAtMinDistance}, prevChar="${prevChar}"`
             );
 
-            // Only detect 3-digit AIs immediately, or 2-digit AIs with strict conditions
+            // Check if this is a valid AI
+            // 3-digit AIs take priority, then 2-digit AIs
             // BUT NEVER detect "01" (GTIN) within variable-length fields since it's always the first AI
-            if (
-              surgishop.GS1_AI_DEFINITIONS[potentialAI3] ||
-              (surgishop.GS1_AI_DEFINITIONS[potentialAI2] &&
-                potentialAI2 !== "01" && // NEVER detect "01" within variable fields
-                isAtReasonablePosition &&
-                isAtFieldBoundary)
-            ) {
-              // Both conditions must be true
+            if (surgishop.GS1_AI_DEFINITIONS[potentialAI3]) {
+              // Found a 3-digit AI
               console.log(
-                `🏥 Debug: Found potential AI "${
-                  potentialAI2 || potentialAI3
-                }" at position ${i}, ending field at ${i}`
+                `🏥 Debug: Found 3-digit AI "${potentialAI3}" at position ${i}, ending field at ${i}`
+              );
+              endPos = i;
+              foundNextAI = true;
+              break;
+            } else if (
+              surgishop.GS1_AI_DEFINITIONS[potentialAI2] &&
+              potentialAI2 !== "01" && // NEVER detect "01" within variable fields
+              isAtMinDistance // Must be at least 1 char into the field
+            ) {
+              // Found a 2-digit AI
+              console.log(
+                `🏥 Debug: Found 2-digit AI "${potentialAI2}" at position ${i}, ending field at ${i}`
               );
               endPos = i;
               foundNextAI = true;
