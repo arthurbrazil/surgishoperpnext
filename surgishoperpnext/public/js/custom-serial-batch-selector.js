@@ -32,6 +32,36 @@ if (erpnext.SerialBatchPackageSelector) {
   console.log('🏥 Patches applied successfully');
 }
 
+// Patch get_dialog_table_fields to add expiry_date column
+const originalGetFields = erpnext.SerialBatchPackageSelector.prototype.get_dialog_table_fields;
+erpnext.SerialBatchPackageSelector.prototype.get_dialog_table_fields = function() {
+  const originalFields = originalGetFields.call(this);
+  originalFields.push({
+    fieldtype: "Date",
+    fieldname: "expiry_date",
+    label: __("Expiry Date"),
+    in_list_view: 1,
+    read_only: 1
+  });
+  return originalFields;
+};
+
+// Patch set_data to fetch expiry dates
+const originalSetData = erpnext.SerialBatchPackageSelector.prototype.set_data;
+erpnext.SerialBatchPackageSelector.prototype.set_data = function(data) {
+  data.forEach((d) => {
+    if (d.batch_no) {
+      frappe.db.get_value('Batch', d.batch_no, 'expiry_date', (r) => {
+        d.expiry_date = r.expiry_date;
+        this.dialog.fields_dict.entries.grid.refresh();
+      });
+    }
+  });
+  originalSetData.call(this, data);
+};
+
+console.log('🏥 Added expiry date column and data fetching');
+
 console.log("🏥 Proxy wrapper applied - error-proof!");
 
 // Safe DOM Modification for Dialog Title
