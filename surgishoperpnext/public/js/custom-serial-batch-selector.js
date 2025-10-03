@@ -138,9 +138,12 @@ if (erpnext.SerialBatchPackageSelector) {
                     ),
                   () => {
                     // Trigger onchange for batch_no to fetch expiry
-                    const batchField = newRow.__onchange && newRow.__onchange.batch_no;
+                    const batchField =
+                      newRow.__onchange && newRow.__onchange.batch_no;
                     if (batchField) batchField();
-                    console.log("🏥 Triggered batch_no onchange for expiry fetch");
+                    console.log(
+                      "🏥 Triggered batch_no onchange for expiry fetch"
+                    );
                   },
                   () =>
                     frappe.model.set_value(
