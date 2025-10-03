@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.2.14
+- **Current Version**: 0.2.15
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT

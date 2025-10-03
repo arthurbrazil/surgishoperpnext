@@ -104,8 +104,8 @@ if (erpnext.SerialBatchPackageSelector) {
 
               // Add to grid
               const grid = this.dialog.fields_dict.entries.grid;
-              const newRow = grid.add_new_row();
-              if (!newRow) {
+              const newRowIdx = grid.add_new_row(); // Note: add_new_row() returns the index, not the row object
+              if (!newRowIdx) {
                 console.error("🏥 Failed to add new row to grid");
                 frappe.msgprint(__("Error adding new batch row"));
                 frappe.ui.play_sound("error");
@@ -113,13 +113,16 @@ if (erpnext.SerialBatchPackageSelector) {
                 return;
               }
 
+              // Get the actual new row object from grid data
+              const newRow = grid.grid_rows[newRowIdx - 1].doc; // Indices are 1-based, so subtract 1
+
               frappe.run_serially([
                 () => frappe.model.set_value(newRow.doctype, newRow.name, "batch_no", batch),
                 () => frappe.model.set_value(newRow.doctype, newRow.name, "qty", 1),
                 () => frappe.model.set_value(newRow.doctype, newRow.name, "expiry_date", batchExpiry),
                 () => {
                   grid.refresh();
-                  console.log("🏥 Successfully added batch row:", batch);
+                  console.log("🏥 Successfully added and set values for batch row:", batch);
                   scanField.set_value("");
                   frappe.ui.play_sound("submit"); // Play success sound
                 }
