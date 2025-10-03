@@ -7,31 +7,28 @@ console.log("🏥 Custom Serial Batch Selector loaded (redone version)");
   const OriginalSelector = erpnext.SerialBatchPackageSelector;
   
   erpnext.SerialBatchPackageSelector = function(opts) {
-    if (!opts || !opts.item) {
-      console.log('🏥 Skipping custom extension - no item provided');
-      return new OriginalSelector(opts);
-    }
+    console.log('🏥 Constructor called with opts:', opts || 'undefined');
+    const instance = new OriginalSelector(opts);
     
-    class CustomSelector extends OriginalSelector {
-      constructor(opts) {
-        super(opts);
-        console.log('🏥 Custom constructor running for item:', opts.item.item_code);
-      }
+    // Override make() for this instance
+    const originalMake = instance.make;
+    instance.make = function() {
+      originalMake.call(this);
+      console.log('🏥 Dialog box opened!');
       
-      make() {
-        super.make();
-        console.log('🏥 Dialog box opened!');
-        
-        const newTitle = `${this.dialog.title} - Item: ${this.item.item_code}`;
+      if (opts && opts.item && opts.item.item_code) {
+        const newTitle = `${this.dialog.title} - Item: ${opts.item.item_code}`;
         this.dialog.set_title(newTitle);
         console.log('🏥 Updated title to:', newTitle);
+      } else {
+        console.log('🏥 No item - default title');
       }
-    }
+    };
     
-    return new CustomSelector(opts);
+    return instance;
   };
   
-  console.log('🏥 Safe wrapper applied to SerialBatchPackageSelector');
+  console.log('🏥 Safe wrapper applied');
 })();
 
 // Safe DOM Modification for Dialog Title
