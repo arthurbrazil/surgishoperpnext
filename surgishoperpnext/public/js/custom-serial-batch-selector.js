@@ -32,35 +32,58 @@ if (erpnext.SerialBatchPackageSelector) {
   console.log('🏥 Patches applied successfully');
 }
 
-// Patch get_dialog_table_fields to add expiry_date column
+// Patch get_dialog_table_fields to add expiry_date column in correct order
 const originalGetFields = erpnext.SerialBatchPackageSelector.prototype.get_dialog_table_fields;
 erpnext.SerialBatchPackageSelector.prototype.get_dialog_table_fields = function() {
   const originalFields = originalGetFields.call(this);
-  originalFields.push({
+  const expiryField = {
     fieldtype: "Date",
     fieldname: "expiry_date",
     label: __("Expiry Date"),
     in_list_view: 1,
     read_only: 1
-  });
+  };
+  originalFields.splice(1, 0, expiryField); // Insert after batch_no (index 0), before qty (now index 2)
+
+  // Add onchange to batch_no for auto-fetch
+  const batchField = originalFields.find(f => f.fieldname === 'batch_no');
+  if (batchField) {
+    batchField.onchange = function() {
+      const batch_no = this.value;
+      if (batch_no) {
+        frappe.db.get_value('Batch', batch_no, 'expiry_date', (r) => {
+          this.grid_row.on_grid_fields_dict.expiry_date.set_value(r.expiry_date);
+        });
+      } else {
+        this.grid_row.on_grid_fields_dict.expiry_date.set_value(null);
+      }
+    };
+  }
+
   return originalFields;
 };
 
-// Patch set_data to fetch expiry dates
+// Patch set_data to fetch expiry dates for initial data
 const originalSetData = erpnext.SerialBatchPackageSelector.prototype.set_data;
 erpnext.SerialBatchPackageSelector.prototype.set_data = function(data) {
-  data.forEach((d) => {
+  const promises = data.map(d => {
     if (d.batch_no) {
-      frappe.db.get_value('Batch', d.batch_no, 'expiry_date', (r) => {
-        d.expiry_date = r.expiry_date;
-        this.dialog.fields_dict.entries.grid.refresh();
+      return new Promise(resolve => {
+        frappe.db.get_value('Batch', d.batch_no, 'expiry_date', (r) => {
+          d.expiry_date = r.expiry_date;
+          resolve();
+        });
       });
     }
+    return Promise.resolve();
   });
-  originalSetData.call(this, data);
+
+  Promise.all(promises).then(() => {
+    originalSetData.call(this, data);
+  });
 };
 
-console.log('🏥 Added expiry date column and data fetching');
+console.log('🏥 Added expiry date column with order, auto-fetch on change, and initial data handling');
 
 console.log("🏥 Proxy wrapper applied - error-proof!");
 
