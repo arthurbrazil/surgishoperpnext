@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 
 @frappe.whitelist()
-def parse_gs1_and_get_batch(gtin, expiry, lot):
+def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 	"""
 	API endpoint to find an item by GTIN, and then find or create a batch for it
 	using the lot and expiry date.
@@ -61,6 +61,9 @@ def parse_gs1_and_get_batch(gtin, expiry, lot):
 		if not item_info.get("has_batch_no"):
 			frappe.logger().warning(f"🏥 SurgiShopERPNext: Item {item_code} does not use batches")
 			frappe.throw(_("Item {0} does not use batch numbers").format(item_code))
+
+		if item_code and item_code != item_info.get("name"):
+			frappe.throw(_("Scanned GTIN does not match the item code"))
 
 		# 2) Form the batch_id as itemcode-lot to avoid conflicts
 		batch_id = f"{item_code}-{lot}"
