@@ -2,21 +2,21 @@
 
 console.log("🏥 Custom Serial Batch Selector loaded (redone version)");
 
-// Patch original constructor to avoid error
+// Patch Original Constructor
 if (erpnext.SerialBatchPackageSelector) {
+  // Patch constructor
   const originalConstructor = erpnext.SerialBatchPackageSelector.prototype.constructor;
-  
   erpnext.SerialBatchPackageSelector.prototype.constructor = function(opts) {
     if (opts && opts.item) {
-      this.qty = opts.item.qty; // Safe access
+      this.qty = opts.item.qty;
     } else {
-      console.log('🏥 Patched: Skipping qty set - no item');
-      this.qty = 0; // Default to avoid undefined
+      this.qty = 0;
+      console.log('🏥 Patched: No item - set qty to 0');
     }
-    return originalConstructor.apply(this, arguments);
+    originalConstructor.apply(this, arguments);
   };
   
-  // Patch make to add message and title
+  // Patch make
   const originalMake = erpnext.SerialBatchPackageSelector.prototype.make;
   erpnext.SerialBatchPackageSelector.prototype.make = function() {
     originalMake.call(this);
@@ -29,9 +29,7 @@ if (erpnext.SerialBatchPackageSelector) {
     }
   };
   
-  console.log('🏥 Original constructor patched successfully');
-} else {
-  console.error('🏥 SerialBatchPackageSelector not found');
+  console.log('🏥 Patches applied successfully');
 }
 
 console.log("🏥 Proxy wrapper applied - error-proof!");
