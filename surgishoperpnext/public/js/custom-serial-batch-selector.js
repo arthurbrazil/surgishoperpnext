@@ -12,19 +12,22 @@ if (typeof erpnext !== "undefined" && erpnext.SerialBatchPackageSelector) {
         "🏥 Custom constructor initialized with opts:",
         opts || "undefined"
       );
+      if (!opts || !opts.item) {
+        console.log('🏥 Skipping custom logic - no item provided');
+        return;
+      }
     }
 
     make() {
       super.make();
       console.log("🏥 Dialog box opened!");
 
-      // Modify title safely
-      if (this.dialog && opts && opts.item && opts.item.item_code) {
-        const newTitle = `${this.dialog.title} - Item: ${opts.item.item_code}`;
+      if (this.opts && this.opts.item && this.opts.item.item_code) {
+        const newTitle = `${this.dialog.title} - Item: ${this.opts.item.item_code}`;
         this.dialog.set_title(newTitle);
         console.log("🏥 Updated dialog title to:", newTitle);
       } else {
-        console.log("🏥 No item context available - using default title");
+        console.log("🏥 No item context - using default title");
       }
     }
   }
