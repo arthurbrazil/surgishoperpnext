@@ -30,7 +30,7 @@ app_license = "mit"
 app_include_js = [
 	"/assets/surgishoperpnext/js/gs1-utils.js?v=0.2.3",
 	"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.2.3",
-	"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.5"
+	"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.6"
 ]
 
 # include js, css files in header of web template
@@ -56,37 +56,37 @@ doctype_js = {
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.2.3",
 		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.2.3",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.5"
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.6"
 	],
 	"Purchase Receipt": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.2.3",
 		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.2.3",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.5"
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.6"
 	],
 	"Purchase Invoice": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.2.3",
 		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.2.3",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.5"
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.6"
 	],
 	"Sales Invoice": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.2.3",
 		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.2.3",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.5"
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.6"
 	],
 	"Delivery Note": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.2.3",
 		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.2.3",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.5"
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.6"
 	],
 	"Stock Reconciliation": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.2.3",
 		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.2.3",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.5"
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.6"
 	],
 }
 

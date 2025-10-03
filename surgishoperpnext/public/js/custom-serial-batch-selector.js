@@ -80,8 +80,11 @@ if (erpnext.SerialBatchPackageSelector) {
               const batch = res.message.batch;
               const batchExpiry = res.message.batch_expiry_date;
               
+              // Format scanned expiry to 'YYYY-MM-DD'
+              const scannedExpiry = '20' + parsed.expiry.slice(0,2) + '-' + parsed.expiry.slice(2,4) + '-' + parsed.expiry.slice(4,6);
+              
               // Validate expiry matches scanned
-              if (batchExpiry !== parsed.expiry) {  // Note: might need to format dates for comparison
+              if (batchExpiry !== scannedExpiry) {
                 frappe.msgprint(__('Batch expiry does not match scanned expiry'));
                 scanField.set_value('');
                 return;
