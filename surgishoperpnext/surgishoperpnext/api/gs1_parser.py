@@ -63,6 +63,7 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 			frappe.throw(_("Item {0} does not use batch numbers").format(item_code))
 
 		if item_code and item_code != item_info.get("name"):
+			frappe.logger().info(f"🏥 SurgiShopERPNext: GTIN Mismatch - Scanned GTIN: {gtin}, Found Item: {item_info.get('name')}, Provided Item: {item_code}")
 			frappe.throw(_("Scanned GTIN does not match the item code"))
 
 		# 2) Form the batch_id as itemcode-lot to avoid conflicts

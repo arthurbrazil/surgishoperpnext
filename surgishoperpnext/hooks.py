@@ -30,7 +30,7 @@ app_license = "mit"
 app_include_js = [
 	"/assets/surgishoperpnext/js/gs1-utils.js?v=0.2.3",
 	"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.2.3",
-	"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.10"
+	"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.2.11"
 ]
 
 # include js, css files in header of web template
