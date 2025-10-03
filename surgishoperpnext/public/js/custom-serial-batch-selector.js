@@ -117,23 +117,37 @@ if (erpnext.SerialBatchPackageSelector) {
 				// Add to grid data directly (dialog grids work differently than form child tables)
 				const grid = this.dialog.fields_dict.entries.grid;
 				
-				// Create a new row object
-				const newRow = {
-					batch_no: batch,
-					qty: 1,
-					expiry_date: batchExpiry
-				};
-
-				// Add to grid data
-				if (!grid.grid_rows) {
-					grid.grid_rows = [];
-				}
-				
 				// Get the grid's data array
 				const gridData = grid.get_data ? grid.get_data() : [];
 				
-				// Add the new row to the data
-				gridData.push(newRow);
+				// Check if batch already exists in the grid
+				const existingRow = gridData.find(row => row.batch_no === batch);
+				
+				if (existingRow) {
+					// Increment quantity if batch already exists
+					existingRow.qty = (existingRow.qty || 0) + 1;
+					console.log(`🏥 Incremented quantity for batch ${batch} to ${existingRow.qty}`);
+					frappe.show_alert({
+						message: __(`Batch ${batch}: Qty increased to ${existingRow.qty}`),
+						indicator: 'green'
+					}, 3);
+				} else {
+					// Create a new row object if batch doesn't exist
+					const newRow = {
+						batch_no: batch,
+						qty: 1,
+						expiry_date: batchExpiry
+					};
+					
+					// Add the new row to the data
+					gridData.push(newRow);
+					
+					console.log("🏥 Successfully added new batch row:", newRow);
+					frappe.show_alert({
+						message: __(`Batch ${batch} added with qty 1`),
+						indicator: 'green'
+					}, 3);
+				}
 				
 				// Set the grid data and refresh
 				if (grid.df && grid.df.data) {
@@ -142,8 +156,7 @@ if (erpnext.SerialBatchPackageSelector) {
 				
 				grid.refresh();
 				
-				console.log("🏥 Successfully added batch row:", newRow);
-				console.log("🏥 Grid data:", gridData);
+				console.log("🏥 Current grid data:", gridData);
 				
 				scanField.set_value("");
 				frappe.utils.play_sound("submit"); // Play success sound
