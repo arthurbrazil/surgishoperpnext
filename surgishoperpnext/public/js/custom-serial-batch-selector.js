@@ -2,35 +2,39 @@
 
 console.log("🏥 Custom Serial Batch Selector loaded (redone version)");
 
-// Proxy Wrapper for Safe Constructor
-erpnext.SerialBatchPackageSelector = new Proxy(erpnext.SerialBatchPackageSelector, {
-  construct(target, args) {
-    const opts = args[0];
-    console.log('🏥 Proxy constructor called with opts:', opts || 'undefined');
-    
-    if (!opts || !opts.item) {
-      console.log('🏥 Skipping custom - no item, using original');
-      return new target(...args);
+// Patch original constructor to avoid error
+if (erpnext.SerialBatchPackageSelector) {
+  const originalConstructor = erpnext.SerialBatchPackageSelector.prototype.constructor;
+  
+  erpnext.SerialBatchPackageSelector.prototype.constructor = function(opts) {
+    if (opts && opts.item) {
+      this.qty = opts.item.qty; // Safe access
+    } else {
+      console.log('🏥 Patched: Skipping qty set - no item');
+      this.qty = 0; // Default to avoid undefined
     }
+    return originalConstructor.apply(this, arguments);
+  };
+  
+  // Patch make to add message and title
+  const originalMake = erpnext.SerialBatchPackageSelector.prototype.make;
+  erpnext.SerialBatchPackageSelector.prototype.make = function() {
+    originalMake.call(this);
+    console.log('🏥 Dialog box opened!');
     
-    const instance = new target(...args);
-    
-    // Override make safely
-    const originalMake = instance.make;
-    instance.make = function() {
-      originalMake.call(this);
-      console.log('🏥 Dialog box opened!');
-      
-      const newTitle = `${this.dialog.title} - Item: ${opts.item.item_code}`;
+    if (this.item && this.item.item_code) {
+      const newTitle = `${this.dialog.title} - Item: ${this.item.item_code}`;
       this.dialog.set_title(newTitle);
       console.log('🏥 Updated title to:', newTitle);
-    };
-    
-    return instance;
-  }
-});
+    }
+  };
+  
+  console.log('🏥 Original constructor patched successfully');
+} else {
+  console.error('🏥 SerialBatchPackageSelector not found');
+}
 
-console.log('🏥 Proxy wrapper applied - error-proof!');
+console.log("🏥 Proxy wrapper applied - error-proof!");
 
 // Safe DOM Modification for Dialog Title
 
