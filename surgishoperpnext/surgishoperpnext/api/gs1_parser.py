@@ -33,21 +33,28 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 		
 		frappe.logger().info(f"🏥 SurgiShopERPNext: Processing GS1 - GTIN: {gtin}, Lot: {lot}, Expiry: {expiry}")
 
-		# 1) Lookup the Item via "Item Barcode"
-		item_code = frappe.db.get_value("Item Barcode", {"barcode": gtin}, "parent")
+		# 1) Validate GTIN and get item_code from barcode
+		if item_code:
+			# Check if barcode exists for this specific item
+			barcode_exists = frappe.db.exists("Item Barcode", {
+				"barcode": gtin,
+				"parent": item_code
+			})
+			if not barcode_exists:
+				frappe.logger().info(f"🏥 SurgiShopERPNext: GTIN {gtin} not found for item {item_code}")
+				frappe.throw(_("Scanned GTIN not found for the provided item code"))
+			item_info = {"name": item_code}
+			frappe.logger().info(f"🏥 SurgiShopERPNext: GTIN {gtin} validated for item {item_code}")
+		else:
+			item_info = frappe.db.get_value("Item Barcode", {"barcode": gtin}, ["parent as name"], as_dict=True) or {}
+			if not item_info:
+				frappe.throw(_("No item found for scanned GTIN"))
 
-		if not item_code:
-			error_msg = f"No item found for GTIN: {gtin}"
-			frappe.logger().warning(f"🏥 SurgiShopERPNext: {error_msg}")
-			frappe.response["message"] = {
-				"found_item": None,
-				"error": error_msg,
-				"gtin": gtin
-			}
-			return
+		# Proceed without the mismatch check, as we've validated above
+		item_code = item_info.get("name")
 
-		# Verify item exists and is active
-		item_info = frappe.get_cached_value("Item", item_code, ["disabled", "has_batch_no"], as_dict=True)
+		# 2) Verify item exists and is active
+		item_info = frappe.db.get_value("Item", item_code, ["name", "has_batch_no", "disabled"], as_dict=True)
 		
 		if not item_info:
 			error_msg = f"Item {item_code} not found in system"
@@ -62,15 +69,11 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 			frappe.logger().warning(f"🏥 SurgiShopERPNext: Item {item_code} does not use batches")
 			frappe.throw(_("Item {0} does not use batch numbers").format(item_code))
 
-		if item_code and item_code != item_info.get("name"):
-			frappe.logger().info(f"🏥 SurgiShopERPNext: GTIN Mismatch - Scanned GTIN: {gtin}, Found Item: {item_info.get('name')}, Provided Item: {item_code}")
-			frappe.throw(_("Scanned GTIN does not match the item code"))
-
-		# 2) Form the batch_id as itemcode-lot to avoid conflicts
+		# 3) Form the batch_id as itemcode-lot to avoid conflicts
 		batch_id = f"{item_code}-{lot}"
 		frappe.logger().info(f"🏥 SurgiShopERPNext: Looking for batch_id: {batch_id}")
 
-		# 3) Check if the batch already exists by "batch_id"
+		# 4) Check if the batch already exists by "batch_id"
 		batch_name = frappe.db.exists("Batch", {"batch_id": batch_id})
 		batch_doc = None
 
@@ -127,7 +130,7 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 			elif batch_doc.expiry_date and expiry:
 				frappe.logger().info(f"🏥 SurgiShopERPNext: Batch {batch_doc.name} already has expiry date: {batch_doc.expiry_date}")
 
-		# 4) Return found_item, final batch name, and batch_expiry_date
+		# 5) Return found_item, final batch name, and batch_expiry_date
 		result = {
 			"found_item": item_code,
 			"batch": batch_doc.name,
