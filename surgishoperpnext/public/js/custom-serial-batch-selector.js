@@ -103,7 +103,7 @@ if (erpnext.SerialBatchPackageSelector) {
               scanField.set_value('');
             }
           });
-        };
+        });
       };
     }
     
