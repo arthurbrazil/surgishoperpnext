@@ -40,8 +40,12 @@ if (erpnext.SerialBatchPackageSelector) {
         // Parse GS1
         const parsed = window.surgishop.GS1Parser.parse(scannedValue);
         if (!parsed || !parsed.gtin || !parsed.lot || !parsed.expiry) {
-          frappe.msgprint(__("Invalid GS1 barcode format"));
+          frappe.show_alert({
+            message: __("Invalid GS1 barcode format"),
+            indicator: 'red'
+          }, 5);
           scanField.set_value("");
+          frappe.utils.play_sound("error");
           return;
         }
 
@@ -53,16 +57,17 @@ if (erpnext.SerialBatchPackageSelector) {
               doc.barcodes &&
               doc.barcodes.some((b) => b.barcode === parsed.gtin);
             if (!hasGtin) {
-              frappe.msgprint(
-                __(
+              frappe.show_alert({
+                message: __(
                   "GTIN " +
                     parsed.gtin +
                     " does not match the barcodes for item: " +
                     this.item.item_code
-                )
-              );
+                ),
+                indicator: 'red'
+              }, 5);
               scanField.set_value("");
-              frappe.utils.play_sound("error"); // Play error sound
+              frappe.utils.play_sound("error");
               return;
             }
 
@@ -82,14 +87,15 @@ if (erpnext.SerialBatchPackageSelector) {
               },
               callback: (res) => {
                 if (!res.message || res.message.error) {
-                  frappe.msgprint(
-                    __(
+                  frappe.show_alert({
+                    message: __(
                       "Error creating or getting batch: " +
                         (res.message.error || "Unknown error")
-                    )
-                  );
+                    ),
+                    indicator: 'red'
+                  }, 5);
                   scanField.set_value("");
-                  frappe.utils.play_sound("error"); // Play error sound
+                  frappe.utils.play_sound("error");
                   return;
                 }
 
@@ -107,10 +113,12 @@ if (erpnext.SerialBatchPackageSelector) {
 
                 // Validate expiry matches scanned
                 if (batchExpiry !== scannedExpiry) {
-                  frappe.msgprint(
-                    __("Batch expiry does not match scanned expiry")
-                  );
+                  frappe.show_alert({
+                    message: __("Batch expiry does not match scanned expiry"),
+                    indicator: 'orange'
+                  }, 5);
                   scanField.set_value("");
+                  frappe.utils.play_sound("error");
                   return;
                 }
 
@@ -164,7 +172,10 @@ if (erpnext.SerialBatchPackageSelector) {
             });
           })
           .catch((err) => {
-            frappe.msgprint(__("Error fetching item details: " + err.message));
+            frappe.show_alert({
+              message: __("Error fetching item details: " + err.message),
+              indicator: 'red'
+            }, 5);
             scanField.set_value("");
             frappe.utils.play_sound("error");
           });
