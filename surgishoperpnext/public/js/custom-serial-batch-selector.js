@@ -46,92 +46,99 @@ if (erpnext.SerialBatchPackageSelector) {
         }
 
         // Get item_code from GTIN
-        // frappe.db.get_value(
-        //   "Item Barcode",
-        //   { barcode: parsed.gtin },
-        //   "parent",
-        //   (r) => {
-        //     if (!r || !r.parent) {
-        //       frappe.msgprint(__("No item found for GTIN"));
-        //       scanField.set_value("");
-        //       return;
-        //     }
-
-        //     const gtinItemCode = r.parent;
-        //     if (gtinItemCode !== this.item.item_code) {
-        //       frappe.msgprint(__("GTIN does not match the current item code"));
-        //       scanField.set_value("");
-        //       return;
-        //     }
-
-        // Format batch_no
-        const formattedBatchNo = `${this.item.item_code}-${parsed.lot}`;
-
-        // Call API
-        frappe.call({
-          method: 'surgishoperpnext.surgishoperpnext.api.gs1_parser.parse_gs1_and_get_batch',
-          args: {
-            gtin: parsed.gtin,
-            expiry: parsed.expiry,
-            lot: parsed.lot,
-            item_code: this.item.item_code  // Added
-          },
-          callback: (res) => {
-            if (!res.message || res.message.error) {
-              frappe.msgprint(
-                __(
-                  "Error creating or getting batch: " +
-                    (res.message.error || "Unknown error")
-                )
-              );
+        frappe.db.get_value(
+          "Item Barcode",
+          { barcode: parsed.gtin },
+          "parent",
+          (r) => {
+            if (!r || !r.parent) {
+              frappe.msgprint(__("No item found for GTIN: " + parsed.gtin));
               scanField.set_value("");
+              frappe.ui.play_sound("error"); // Play error sound
               return;
             }
 
-            const batch = res.message.batch;
-            const batchExpiry = res.message.batch_expiry_date;
-
-            // Format scanned expiry to 'YYYY-MM-DD'
-            const scannedExpiry =
-              "20" +
-              parsed.expiry.slice(0, 2) +
-              "-" +
-              parsed.expiry.slice(2, 4) +
-              "-" +
-              parsed.expiry.slice(4, 6);
-
-            // Validate expiry matches scanned
-            if (batchExpiry !== scannedExpiry) {
-              frappe.msgprint(
-                __("Batch expiry does not match scanned expiry")
-              );
+            const gtinItemCode = r.parent;
+            if (gtinItemCode !== this.item.item_code) {
+              frappe.msgprint(__("GTIN " + parsed.gtin + " does not match the current item: " + this.item.item_code));
               scanField.set_value("");
+              frappe.ui.play_sound("error"); // Play error sound
               return;
             }
 
-            // Add to grid
-            const grid = this.dialog.fields_dict.entries.grid;
-            const newRow = grid.add_new_row();
-            frappe.model.set_value(
-              newRow.doctype,
-              newRow.name,
-              "batch_no",
-              batch
-            );
-            frappe.model.set_value(newRow.doctype, newRow.name, "qty", 1);
-            frappe.model.set_value(
-              newRow.doctype,
-              newRow.name,
-              "expiry_date",
-              batchExpiry
-            );
+            // Proceed with batch creation...
+            // Format batch_no
+            const formattedBatchNo = `${this.item.item_code}-${parsed.lot}`;
 
-            grid.refresh();
+            // Call API
+            frappe.call({
+              method: 'surgishoperpnext.surgishoperpnext.api.gs1_parser.parse_gs1_and_get_batch',
+              args: {
+                gtin: parsed.gtin,
+                expiry: parsed.expiry,
+                lot: parsed.lot,
+                item_code: this.item.item_code
+              },
+              callback: (res) => {
+                if (!res.message || res.message.error) {
+                  frappe.msgprint(
+                    __(
+                      "Error creating or getting batch: " +
+                        (res.message.error || "Unknown error")
+                    )
+                  );
+                  scanField.set_value("");
+                  frappe.ui.play_sound("error"); // Play error sound
+                  return;
+                }
 
-            // Clear scan field
-            scanField.set_value("");
-          },
-        });
+                const batch = res.message.batch;
+                const batchExpiry = res.message.batch_expiry_date;
+
+                // Format scanned expiry to 'YYYY-MM-DD'
+                const scannedExpiry =
+                  "20" +
+                  parsed.expiry.slice(0, 2) +
+                  "-" +
+                  parsed.expiry.slice(2, 4) +
+                  "-" +
+                  parsed.expiry.slice(4, 6);
+
+                // Validate expiry matches scanned
+                if (batchExpiry !== scannedExpiry) {
+                  frappe.msgprint(
+                    __("Batch expiry does not match scanned expiry")
+                  );
+                  scanField.set_value("");
+                  return;
+                }
+
+                // Add to grid
+                const grid = this.dialog.fields_dict.entries.grid;
+                const newRow = grid.add_new_row();
+                frappe.model.set_value(
+                  newRow.doctype,
+                  newRow.name,
+                  "batch_no",
+                  batch
+                );
+                frappe.model.set_value(newRow.doctype, newRow.name, "qty", 1);
+                frappe.model.set_value(
+                  newRow.doctype,
+                  newRow.name,
+                  "expiry_date",
+                  batchExpiry
+                );
+
+                grid.refresh();
+
+                // Clear scan field
+                scanField.set_value("");
+                frappe.ui.play_sound("submit"); // Play success sound
+              }
+            });
+          }
+        );
       };
     }
 
