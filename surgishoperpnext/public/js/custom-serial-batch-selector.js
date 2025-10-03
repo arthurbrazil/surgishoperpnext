@@ -2,44 +2,37 @@
 
 console.log("🏥 Custom Serial Batch Selector loaded (redone version)");
 
-if (typeof erpnext !== "undefined" && erpnext.SerialBatchPackageSelector) {
-  console.log("🏥 Extending ERPNext SerialBatchPackageSelector...");
-
-  class CustomSerialBatchPackageSelector extends erpnext.SerialBatchPackageSelector {
-    constructor(opts) {
-      super(opts);
-      console.log(
-        "🏥 Custom constructor initialized with opts:",
-        opts || "undefined"
-      );
-      if (!opts || !opts.item) {
-        console.log('🏥 Skipping custom logic - no item provided');
-        return;
-      }
+// Wrapper to safely extend the selector
+(function() {
+  const OriginalSelector = erpnext.SerialBatchPackageSelector;
+  
+  erpnext.SerialBatchPackageSelector = function(opts) {
+    if (!opts || !opts.item) {
+      console.log('🏥 Skipping custom extension - no item provided');
+      return new OriginalSelector(opts);
     }
-
-    make() {
-      super.make();
-      console.log("🏥 Dialog box opened!");
-
-      if (this.opts && this.opts.item && this.opts.item.item_code) {
-        const newTitle = `${this.dialog.title} - Item: ${this.opts.item.item_code}`;
+    
+    class CustomSelector extends OriginalSelector {
+      constructor(opts) {
+        super(opts);
+        console.log('🏥 Custom constructor running for item:', opts.item.item_code);
+      }
+      
+      make() {
+        super.make();
+        console.log('🏥 Dialog box opened!');
+        
+        const newTitle = `${this.dialog.title} - Item: ${this.item.item_code}`;
         this.dialog.set_title(newTitle);
-        console.log("🏥 Updated dialog title to:", newTitle);
-      } else {
-        console.log("🏥 No item context - using default title");
+        console.log('🏥 Updated title to:', newTitle);
       }
     }
-  }
-
-  // Replace the original class with our extended version
-  erpnext.SerialBatchPackageSelector = CustomSerialBatchPackageSelector;
-  console.log("🏥 Extension applied successfully");
-} else {
-  console.error(
-    "🏥 ERPNext SerialBatchPackageSelector not found - ensure script loads after ERPNext assets"
-  );
-}
+    
+    return new CustomSelector(opts);
+  };
+  
+  console.log('🏥 Safe wrapper applied to SerialBatchPackageSelector');
+})();
 
 // Safe DOM Modification for Dialog Title
 
