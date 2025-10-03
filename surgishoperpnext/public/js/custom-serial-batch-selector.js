@@ -8,20 +8,20 @@ if (typeof erpnext !== 'undefined' && erpnext.SerialBatchPackageSelector) {
   class CustomSerialBatchPackageSelector extends erpnext.SerialBatchPackageSelector {
     constructor(opts) {
       super(opts);
-      console.log('🏥 Custom constructor initialized with opts:', opts);
+      console.log('🏥 Custom constructor initialized with opts:', opts || 'undefined');
     }
     
     make() {
       super.make();
-      console.log('🏥 Dialog box opened!'); // Console message on open
+      console.log('🏥 Dialog box opened!');
       
-      // Modify title with item code (safely)
-      if (this.dialog && this.item && this.item.item_code) {
-        const newTitle = `${this.dialog.title} - Item: ${this.item.item_code}`;
+      // Modify title safely
+      if (this.dialog && opts && opts.item && opts.item.item_code) {
+        const newTitle = `${this.dialog.title} - Item: ${opts.item.item_code}`;
         this.dialog.set_title(newTitle);
         console.log('🏥 Updated dialog title to:', newTitle);
       } else {
-        console.log('🏥 No item context available for title modification');
+        console.log('🏥 No item context available - using default title');
       }
     }
   }
